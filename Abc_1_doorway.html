@@ -98,8 +98,12 @@ mark.sugerencia{background:var(--sev-sugerencia-bg);color:var(--ink);}
 .score-total{font-family:var(--font-serif);font-size:28px;}
 .config-row{display:flex;gap:14px;flex-wrap:wrap;}
 .config-row .field{flex:1;min-width:170px;}
-dialog#api-config-dialog{border:1px solid var(--border-strong);border-radius:var(--radius);padding:18px 22px;width:min(660px,92vw);background:var(--surface);color:var(--ink);}
+dialog#api-config-dialog{border:1px solid var(--border-strong);border-radius:var(--radius);padding:18px 22px;width:min(680px,92vw);background:var(--surface);color:var(--ink);}
 dialog#api-config-dialog::backdrop{background:rgba(31,41,51,.38);}
+dialog#api-config-dialog select{width:100%;}
+details.help{margin:8px 0;font-size:12.5px;}
+details.help summary{cursor:pointer;color:var(--ink-muted);}
+details.help table{font-size:12px;}
 @media (max-width:820px){
   .app{flex-direction:column;}
   nav.stepper{width:auto;flex:none;border-right:none;border-bottom:1px solid var(--border);padding:14px 16px;}
@@ -219,7 +223,7 @@ dialog#api-config-dialog::backdrop{background:rgba(31,41,51,.38);}
 
       <div class="card">
         <h3>Motor de IA</h3>
-        <p class="muted">La evaluación del documento y la conversión de rúbricas desde PDF/DOCX usan el motor configurado (GLM/Z.ai, OpenAI, Anthropic o proxy propio).</p>
+        <p class="muted">La evaluación del documento y la conversión de rúbricas desde PDF/DOCX usan el motor configurado (gratuito con cuenta, local sin internet, o de pago).</p>
         <div class="toolbar" style="margin:0;">
           <button onclick="openApiDialog()">Abrir configuración del motor de IA</button>
         </div>
@@ -248,15 +252,28 @@ dialog#api-config-dialog::backdrop{background:rgba(31,41,51,.38);}
     <div class="field">
       <label for="cfg-provider">Proveedor</label>
       <select id="cfg-provider" onchange="onProviderChange()">
-        <option value="zai">GLM (Z.ai) — compatible OpenAI</option>
-        <option value="openai">OpenAI</option>
-        <option value="anthropic">Anthropic (Claude)</option>
-        <option value="custom">Otro endpoint compatible OpenAI / proxy propio</option>
+        <optgroup label="Gratuitos (creando cuenta)">
+          <option value="gemini">Google AI Studio (Gemini) — recomendado</option>
+          <option value="groq">Groq (Llama)</option>
+          <option value="openrouter">OpenRouter (modelos :free)</option>
+          <option value="zai">GLM (Z.ai)</option>
+        </optgroup>
+        <optgroup label="Locales (sin clave ni internet)">
+          <option value="ollama">Ollama</option>
+          <option value="lmstudio">LM Studio</option>
+        </optgroup>
+        <optgroup label="De pago">
+          <option value="openai">OpenAI</option>
+          <option value="anthropic">Anthropic (Claude)</option>
+        </optgroup>
+        <optgroup label="Avanzado">
+          <option value="custom">Otro endpoint compatible OpenAI / proxy propio</option>
+        </optgroup>
       </select>
     </div>
     <div class="field">
       <label for="cfg-model">Modelo</label>
-      <input type="text" id="cfg-model" style="width:100%">
+      <input type="text" id="cfg-model" style="width:100%" placeholder="nombre exacto del modelo (ej. gemini-2.5-flash, qwen2.5:7b)">
     </div>
   </div>
   <div class="field">
@@ -265,7 +282,7 @@ dialog#api-config-dialog::backdrop{background:rgba(31,41,51,.38);}
   </div>
   <div class="field">
     <label for="cfg-key">API key</label>
-    <input type="password" id="cfg-key" style="width:100%" placeholder="Se envía solo desde tu navegador al endpoint elegido">
+    <input type="password" id="cfg-key" style="width:100%">
   </div>
   <label style="display:flex;gap:6px;align-items:center;font-size:12px;color:var(--ink-muted);margin-bottom:8px;">
     <input type="checkbox" id="cfg-remember" checked> Guardar configuración y clave en este navegador (localStorage)
@@ -275,7 +292,20 @@ dialog#api-config-dialog::backdrop{background:rgba(31,41,51,.38);}
     <button onclick="closeApiDialog()">Cerrar</button>
     <span class="hint" id="cfg-status"></span>
   </div>
-  <p class="hint">Nota de seguridad: en un navegador la clave es visible en la pestaña de Red. Para un despliegue compartido con varias personas, usa la opción "proxy propio" (una función serverless que guarda la clave en el servidor). Algunos proveedores bloquean llamadas directas desde navegador (CORS): si la prueba falla por eso, un proxy también lo resuelve.</p>
+  <details class="help">
+    <summary>¿Dónde consigo una clave gratuita? / ¿Cómo activo Ollama o LM Studio?</summary>
+    <table>
+      <tr><th>Proveedor</th><th>Cómo empezar</th></tr>
+      <tr><td>Google AI Studio (Gemini)</td><td>Entra en <span class="ref">aistudio.google.com</span> con tu cuenta Google → "Get API key". Generosa capa gratuita, buen español.</td></tr>
+      <tr><td>Groq</td><td>Regístrate en <span class="ref">console.groq.com</span> → API Keys → Create API Key.</td></tr>
+      <tr><td>OpenRouter</td><td>Cuenta en <span class="ref">openrouter.ai</span> → Keys. En su catálogo, elige un modelo cuyo nombre termine en <span class="ref">:free</span> y ponlo en el campo Modelo.</td></tr>
+      <tr><td>GLM (Z.ai)</td><td>Cuenta en <span class="ref">z.ai</span> → plataforma de API. Verifica qué modelos tiene habilitados tu plan/región y ajusta el nombre en el campo Modelo.</td></tr>
+      <tr><td>Ollama</td><td>Instala desde <span class="ref">ollama.com</span>, luego en terminal: <span class="ref">ollama pull qwen2.5:7b</span> y <span class="ref">ollama serve</span>. Si "Probar conexión" da error 403, arranca Ollama permitiendo el origen: en Windows <span class="ref">set OLLAMA_ORIGINS=*</span> antes de ejecutarlo; en macOS <span class="ref">launchctl setenv OLLAMA_ORIGINS "*"</span>; en Linux, añade <span class="ref">Environment="OLLAMA_ORIGINS=*"</span> al servicio. La API key no es necesaria.</td></tr>
+      <tr><td>LM Studio</td><td>Descarga el modelo desde su catálogo, ve a la pestaña "Developer / Local Server" → Start (puerto 1234) y activa "Enable CORS"/"Serve on local network" si lo pide. En el campo Modelo escribe el id exacto del modelo descargado. La API key no es necesaria.</td></tr>
+    </table>
+    <p class="hint">Los endpoints locales (Ollama, LM Studio) no envían tu tesis a internet: todo se procesa en tu computadora. Los gratuitos con cuenta sí envían el texto al proveedor.</p>
+  </details>
+  <p class="hint">Nota de seguridad: en un navegador la clave es visible en la pestaña de Red. Para un despliegue compartido con varias personas, usa la opción "proxy propio" (una función serverless que guarda la clave en el servidor). Algunos proveedores bloquean llamadas directas desde navegador (CORS): si la prueba falla por eso, prueba con otro proveedor de la lista o con un proxy.</p>
 </dialog>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.4.2/mammoth.browser.min.js"></script>
@@ -541,7 +571,7 @@ async function importRubricWithAI(file){
   const statusEl = document.getElementById('rubric-ai-status');
   statusEl.textContent = '';
   const cfg = readApiConfigInputs();
-  if(!cfg.endpoint || !cfg.key){
+  if(!apiConfigReady(cfg)){
     openApiDialog('Para convertir una rúbrica desde PDF/DOCX se necesita el motor de IA. Configúralo aquí (y prueba la conexión) y vuelve a pulsar "Importar rúbrica desde PDF/DOCX (IA)".');
     return;
   }
@@ -843,13 +873,18 @@ function renderDeterministicResults(){
 }
 
 /* ============================================================
-   CONFIGURACIÓN DEL MOTOR DE IA (independiente del proveedor)
+   CONFIGURACIÓN DEL MOTOR DE IA — proveedores gratuitos, locales y de pago
    ============================================================ */
 const API_DEFAULTS = {
-  zai:       {endpoint:'https://api.z.ai/api/paas/v4/chat/completions', model:'glm-4.6'},
-  openai:    {endpoint:'https://api.openai.com/v1/chat/completions',    model:'gpt-4o'},
-  anthropic: {endpoint:'https://api.anthropic.com/v1/messages',         model:'claude-sonnet-4-6'},
-  custom:    {endpoint:'', model:''}
+  gemini:    {endpoint:'https://generativelanguage.googleapis.com/v1beta/openai/chat/completions', model:'gemini-2.5-flash', local:false, keyHint:'Pega tu API key gratuita de aistudio.google.com → "Get API key"'},
+  groq:      {endpoint:'https://api.groq.com/openai/v1/chat/completions',                          model:'llama-3.3-70b-versatile', local:false, keyHint:'Pega tu API key gratuita de console.groq.com → API Keys'},
+  openrouter:{endpoint:'https://openrouter.ai/api/v1/chat/completions',                            model:'meta-llama/llama-3.3-70b-instruct:free', local:false, keyHint:'Pega tu API key gratuita de openrouter.ai → Keys. Usa un modelo que termine en ":free"'},
+  zai:       {endpoint:'https://api.z.ai/api/paas/v4/chat/completions',                            model:'glm-4.6', local:false, keyHint:'Pega tu API key de z.ai (verifica los modelos habilitados en tu plan)'},
+  ollama:    {endpoint:'http://localhost:11434/v1/chat/completions',                               model:'qwen2.5:7b', local:true, keyHint:'No necesaria para Ollama — puedes dejarla vacía'},
+  lmstudio:  {endpoint:'http://localhost:1234/v1/chat/completions',                                model:'', local:true, keyHint:'No necesaria para LM Studio — puedes dejarla vacía. Escribe el id del modelo descargado'},
+  openai:    {endpoint:'https://api.openai.com/v1/chat/completions',                               model:'gpt-4o', local:false, keyHint:'Pega tu API key de OpenAI (de pago)'},
+  anthropic: {endpoint:'https://api.anthropic.com/v1/messages',                                    model:'claude-sonnet-4-6', local:false, keyHint:'Pega tu API key de Anthropic (de pago)'},
+  custom:    {endpoint:'', model:'', local:false, keyHint:'Pega tu API key, o déjala vacía si tu proxy local no la exige'}
 };
 const API_CFG_LS_KEY = 'dictamen-doctoral-api-cfg-v1';
 
@@ -861,21 +896,36 @@ function closeApiDialog(){
   document.getElementById('api-config-dialog').close();
 }
 
+function isLocalEndpoint(cfg){
+  return /:\/\/(localhost|127\.0\.0\.1)/i.test(cfg.endpoint||'');
+}
+/* Un motor está listo si hay endpoint + modelo, y además hay clave
+   O el endpoint es local (Ollama/LM Studio/proxy propio en localhost). */
+function apiConfigReady(cfg){
+  return !!(cfg.endpoint && cfg.model && (cfg.key || API_DEFAULTS[cfg.provider]?.local || isLocalEndpoint(cfg)));
+}
+
+function applyProviderUI(provider, saved){
+  const d = API_DEFAULTS[provider] || API_DEFAULTS.custom;
+  document.getElementById('cfg-endpoint').value = (saved && saved.endpoint) || d.endpoint;
+  document.getElementById('cfg-model').value    = (saved && saved.model)    || d.model;
+  const keyEl = document.getElementById('cfg-key');
+  keyEl.value = (saved && saved.key) || '';
+  keyEl.placeholder = d.keyHint || 'Pega tu API key';
+}
+
 function loadApiConfigUI(){
   let saved = null;
   try{ saved = JSON.parse(localStorage.getItem(API_CFG_LS_KEY)||'null'); }catch(e){}
-  const provider = (saved && API_DEFAULTS[saved.provider]) ? saved.provider : 'zai';
+  const provider = (saved && API_DEFAULTS[saved.provider]) ? saved.provider : 'gemini';
   document.getElementById('cfg-provider').value = provider;
-  document.getElementById('cfg-endpoint').value = (saved && saved.endpoint) || API_DEFAULTS[provider].endpoint;
-  document.getElementById('cfg-model').value    = (saved && saved.model)    || API_DEFAULTS[provider].model;
-  document.getElementById('cfg-key').value      = (saved && saved.key)      || '';
+  applyProviderUI(provider, saved);
   document.getElementById('cfg-remember').checked = true;
 }
 
 function onProviderChange(){
   const provider = document.getElementById('cfg-provider').value;
-  document.getElementById('cfg-endpoint').value = API_DEFAULTS[provider].endpoint;
-  document.getElementById('cfg-model').value    = API_DEFAULTS[provider].model;
+  applyProviderUI(provider, null);
 }
 
 function readApiConfigInputs(){
@@ -894,15 +944,29 @@ function readApiConfigInputs(){
 
 async function callLLM(systemPrompt, userText, maxTokens){
   const cfg = readApiConfigInputs();
-  if(!cfg.endpoint || !cfg.key){
-    throw new Error('Falta configurar el endpoint o la API key del motor de IA (botón "⚙ Motor de IA", arriba).');
+  if(!cfg.endpoint || !cfg.model){
+    throw new Error('Falta el endpoint o el nombre del modelo del motor de IA (botón "⚙ Motor de IA", arriba).');
   }
+  if(!cfg.key && !(API_DEFAULTS[cfg.provider]?.local || isLocalEndpoint(cfg))){
+    throw new Error('Falta la API key del motor de IA (botón "⚙ Motor de IA", arriba). Para Ollama/LM Studio o un proxy local puedes dejarla vacía.');
+  }
+  const key = cfg.key || 'sk-local';
+  const body = {
+    model: cfg.model,
+    temperature: 0.2,
+    max_tokens: maxTokens||1600,
+    messages:[
+      {role:'system', content:systemPrompt},
+      {role:'user',   content:userText}
+    ]
+  };
+
   if(cfg.provider==='anthropic'){
     const response = await fetch(cfg.endpoint, {
       method:'POST',
       headers:{
         'Content-Type':'application/json',
-        'x-api-key': cfg.key,
+        'x-api-key': key,
         'anthropic-version': '2023-06-01',
         'anthropic-dangerous-direct-browser-access': 'true'
       },
@@ -920,20 +984,16 @@ async function callLLM(systemPrompt, userText, maxTokens){
     const data = await response.json();
     return (data.content||[]).filter(b=>b.type==='text').map(b=>b.text).join('\n');
   }
-  // Proveedor compatible con el formato OpenAI (GLM/Z.ai, OpenAI, proxies propios…)
-  const response = await fetch(cfg.endpoint, {
-    method:'POST',
-    headers:{'Content-Type':'application/json','Authorization':'Bearer '+cfg.key},
-    body: JSON.stringify({
-      model: cfg.model,
-      temperature: 0.2,
-      max_tokens: maxTokens||1600,
-      messages:[
-        {role:'system', content:systemPrompt},
-        {role:'user',   content:userText}
-      ]
-    })
-  });
+
+  // Proveedores compatibles con el formato OpenAI (Gemini, Groq, OpenRouter,
+  // GLM/Z.ai, OpenAI, Ollama, LM Studio, proxies propios…)
+  const headers = {'Content-Type':'application/json','Authorization':'Bearer '+key};
+  if(cfg.provider==='openrouter'){
+    // headers opcionales de OpenRouter (atribución de la app); no son obligatorios
+    headers['HTTP-Referer'] = 'https://localhost/dictamen-doctoral';
+    headers['X-Title'] = 'Dictamen doctoral';
+  }
+  const response = await fetch(cfg.endpoint, {method:'POST', headers, body: JSON.stringify(body)});
   if(!response.ok){
     throw new Error('HTTP '+response.status+': '+(await response.text()).slice(0,200));
   }
@@ -1093,7 +1153,7 @@ async function runAIEvaluation(){
   if(!state.doc){ alert('Primero carga un documento.'); return; }
   if(!state.rubric.criteria.length){ alert('Primero define o carga una rúbrica.'); return; }
   const cfg = readApiConfigInputs();
-  if(!cfg.endpoint || !cfg.key){
+  if(!apiConfigReady(cfg)){
     openApiDialog('Para generar el dictamen se necesita el motor de IA. Configúralo aquí (y prueba la conexión) y vuelve a pulsar "Generar dictamen con IA".');
     return;
   }
@@ -1196,7 +1256,7 @@ function renderObservationList(){
     .sort((a,b)=> (a.seccion>b.seccion?1:-1) || (SEV_ORDER[a.severidad]-SEV_ORDER[b.severidad]));
   if(!sorted.length) return '<p class="muted">Sin observaciones para los filtros activos.</p>';
   return sorted.map(o=>`
-    <div class="obs-card ${o.severidad}">
+    <div class="obs-card ${o.severidade==='x'?'':o.severidad}">
       <span class="sev-tag">${SEV_LABEL[o.severidad]}</span> <span class="ref">${escapeHtml(o.seccion)}</span>${o.anchor?` <span class="anchor">${escapeHtml(o.anchor)}</span>`:''}
       ${o.cita?`<blockquote>"${escapeHtml(o.cita)}"</blockquote>`:''}
       <p>${escapeHtml(o.comentario)}</p>
