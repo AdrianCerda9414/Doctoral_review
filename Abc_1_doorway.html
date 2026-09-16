@@ -98,6 +98,8 @@ mark.sugerencia{background:var(--sev-sugerencia-bg);color:var(--ink);}
 .score-total{font-family:var(--font-serif);font-size:28px;}
 .config-row{display:flex;gap:14px;flex-wrap:wrap;}
 .config-row .field{flex:1;min-width:170px;}
+dialog#api-config-dialog{border:1px solid var(--border-strong);border-radius:var(--radius);padding:18px 22px;width:min(660px,92vw);background:var(--surface);color:var(--ink);}
+dialog#api-config-dialog::backdrop{background:rgba(31,41,51,.38);}
 @media (max-width:820px){
   .app{flex-direction:column;}
   nav.stepper{width:auto;flex:none;border-right:none;border-bottom:1px solid var(--border);padding:14px 16px;}
@@ -107,7 +109,7 @@ mark.sugerencia{background:var(--sev-sugerencia-bg);color:var(--ink);}
   nav.stepper .label{display:none;}
 }
 @media print{
-  nav.stepper,.toolbar,header.top .kicker,button,.no-print,#api-config-card,#ai-progress,.filters{display:none !important;}
+  nav.stepper,.toolbar,header.top .kicker,button,.no-print,#ai-progress,.filters,dialog{display:none !important;}
   main{padding:0;}
   section.panel{display:block !important;}
   .app{display:block;max-width:none;}
@@ -119,6 +121,9 @@ mark.sugerencia{background:var(--sev-sugerencia-bg);color:var(--ink);}
 <header class="top">
   <div class="kicker">Herramienta de apoyo a la dirección doctoral</div>
   <h1>Dictamen con rúbrica — Ciencias de la Educación</h1>
+  <div class="toolbar" style="margin:10px 0 0;">
+    <button class="small" onclick="openApiDialog()">⚙ Motor de IA</button>
+  </div>
 </header>
 
 <div class="app">
@@ -136,14 +141,17 @@ mark.sugerencia{background:var(--sev-sugerencia-bg);color:var(--ink);}
     <!-- PANEL 1: RÚBRICA -->
     <section class="panel active" id="panel-1">
       <h2>1. Rúbrica de evaluación</h2>
-      <p class="muted">Define los aspectos a evaluar y sus bandas de puntaje, o carga la Rúbrica 4.1 como punto de partida y edítala.</p>
+      <p class="muted">Importa tu rúbrica desde PDF/DOCX (la IA la convierte y la cargas editable aquí), define los aspectos a evaluar manualmente, o carga la Rúbrica 4.1 como punto de partida.</p>
       <div class="toolbar">
-        <button class="primary" onclick="loadDefaultRubric()">Cargar Rúbrica 4.1 (ejemplo)</button>
+        <button class="primary" onclick="document.getElementById('rubric-doc-import').click()">Importar rúbrica desde PDF/DOCX (IA)</button>
+        <input type="file" id="rubric-doc-import" accept=".docx,.pdf" style="display:none" onchange="importRubricWithAI(this.files[0]); this.value='';">
+        <button onclick="loadDefaultRubric()">Cargar Rúbrica 4.1 (ejemplo)</button>
         <button onclick="document.getElementById('rubric-import').click()">Importar JSON</button>
         <input type="file" id="rubric-import" accept="application/json" style="display:none" onchange="importRubricJSON(this.files[0])">
         <button onclick="exportRubricJSON()">Exportar JSON</button>
         <button onclick="addCriterio()">+ Añadir criterio</button>
       </div>
+      <div id="rubric-ai-status" class="hint" style="margin-bottom:10px;"></div>
 
       <div class="card">
         <div class="field">
@@ -209,39 +217,12 @@ mark.sugerencia{background:var(--sev-sugerencia-bg);color:var(--ink);}
       <h2>4. Evaluación con IA y dictamen</h2>
       <div class="info-box" id="ai-mode-note"></div>
 
-      <div class="card" id="api-config-card">
-        <h3>Configuración del motor de IA</h3>
-        <div class="config-row">
-          <div class="field">
-            <label for="cfg-provider">Proveedor</label>
-            <select id="cfg-provider" onchange="onProviderChange()">
-              <option value="zai">GLM (Z.ai) — compatible OpenAI</option>
-              <option value="openai">OpenAI</option>
-              <option value="anthropic">Anthropic (Claude)</option>
-              <option value="custom">Otro endpoint compatible OpenAI / proxy propio</option>
-            </select>
-          </div>
-          <div class="field">
-            <label for="cfg-model">Modelo</label>
-            <input type="text" id="cfg-model" style="width:100%">
-          </div>
-        </div>
-        <div class="field">
-          <label for="cfg-endpoint">Endpoint (URL)</label>
-          <input type="text" id="cfg-endpoint" style="width:100%">
-        </div>
-        <div class="field">
-          <label for="cfg-key">API key</label>
-          <input type="password" id="cfg-key" style="width:100%" placeholder="Se envía solo desde tu navegador al endpoint elegido">
-        </div>
-        <label style="display:flex;gap:6px;align-items:center;font-size:12px;color:var(--ink-muted);margin-bottom:8px;">
-          <input type="checkbox" id="cfg-remember" checked> Guardar configuración y clave en este navegador (localStorage)
-        </label>
+      <div class="card">
+        <h3>Motor de IA</h3>
+        <p class="muted">La evaluación del documento y la conversión de rúbricas desde PDF/DOCX usan el motor configurado (GLM/Z.ai, OpenAI, Anthropic o proxy propio).</p>
         <div class="toolbar" style="margin:0;">
-          <button onclick="testApiConnection()">Probar conexión</button>
-          <span class="hint" id="cfg-status"></span>
+          <button onclick="openApiDialog()">Abrir configuración del motor de IA</button>
         </div>
-        <p class="hint">Nota de seguridad: en un navegador la clave es visible en la pestaña de Red. Para un despliegue compartido con varias personas, usa la opción "proxy propio" (una función serverless que guarda la clave en el servidor). Algunos proveedores bloquean llamadas directas desde navegador (CORS): si la prueba falla por eso, un proxy también lo resuelve.</p>
       </div>
 
       <div class="toolbar">
@@ -258,6 +239,44 @@ mark.sugerencia{background:var(--sev-sugerencia-bg);color:var(--ink);}
 
   </main>
 </div>
+
+<!-- DIÁLOGO DE CONFIGURACIÓN DEL MOTOR DE IA (accesible desde cualquier paso) -->
+<dialog id="api-config-dialog">
+  <h3>Configuración del motor de IA</h3>
+  <p class="hint" id="api-dialog-reason"></p>
+  <div class="config-row">
+    <div class="field">
+      <label for="cfg-provider">Proveedor</label>
+      <select id="cfg-provider" onchange="onProviderChange()">
+        <option value="zai">GLM (Z.ai) — compatible OpenAI</option>
+        <option value="openai">OpenAI</option>
+        <option value="anthropic">Anthropic (Claude)</option>
+        <option value="custom">Otro endpoint compatible OpenAI / proxy propio</option>
+      </select>
+    </div>
+    <div class="field">
+      <label for="cfg-model">Modelo</label>
+      <input type="text" id="cfg-model" style="width:100%">
+    </div>
+  </div>
+  <div class="field">
+    <label for="cfg-endpoint">Endpoint (URL)</label>
+    <input type="text" id="cfg-endpoint" style="width:100%">
+  </div>
+  <div class="field">
+    <label for="cfg-key">API key</label>
+    <input type="password" id="cfg-key" style="width:100%" placeholder="Se envía solo desde tu navegador al endpoint elegido">
+  </div>
+  <label style="display:flex;gap:6px;align-items:center;font-size:12px;color:var(--ink-muted);margin-bottom:8px;">
+    <input type="checkbox" id="cfg-remember" checked> Guardar configuración y clave en este navegador (localStorage)
+  </label>
+  <div class="toolbar" style="margin:0;">
+    <button onclick="testApiConnection()">Probar conexión</button>
+    <button onclick="closeApiDialog()">Cerrar</button>
+    <span class="hint" id="cfg-status"></span>
+  </div>
+  <p class="hint">Nota de seguridad: en un navegador la clave es visible en la pestaña de Red. Para un despliegue compartido con varias personas, usa la opción "proxy propio" (una función serverless que guarda la clave en el servidor). Algunos proveedores bloquean llamadas directas desde navegador (CORS): si la prueba falla por eso, un proxy también lo resuelve.</p>
+</dialog>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.4.2/mammoth.browser.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.6.347/pdf.min.js"></script>
@@ -438,12 +457,111 @@ function importRubricJSON(file){
   const reader = new FileReader();
   reader.onload = e=>{
     try{
-      state.rubric = JSON.parse(e.target.result);
-      if(!state.rubric.instructedPages) state.rubric.instructedPages={min:null,max:null};
+      state.rubric = normalizeRubric(JSON.parse(e.target.result));
       renderRubric();
-    }catch(err){ alert('El archivo no es un JSON de rúbrica válido.'); }
+    }catch(err){ alert('El archivo no es un JSON de rúbrica válido: '+err.message); }
   };
   reader.readAsText(file);
+}
+
+/* ============================================================
+   IMPORTAR RÚBRICA DESDE PDF/DOCX — extracción + conversión con IA
+   ============================================================ */
+const SYSTEM_PROMPT_RUBRIC_IMPORT = `Convierte la rúbrica de evaluación entregada en texto (proveniente de un PDF o DOCX; las tablas llegan como filas con celdas separadas por " | ") a un JSON válido, sin texto adicional ni backticks, con esta forma exacta:
+{"title":"...","instructedPages":{"min":N_o_null,"max":N_o_null},"criteria":[{"id":"...","name":"...","isGate":false,"maxPoints":N,"bands":[{"min":N,"desc":"..."}]}]}
+
+Reglas:
+- Conserva fielmente nombres de criterios, puntajes y descripciones de bandas del original. No inventes, no completes, no parafrasees las descripciones.
+- "bands" ordenadas de mayor a menor puntaje; "min" es el puntaje mínimo de esa banda (la banda más baja suele ser 0).
+- Si un criterio es de tipo "cumple / no cumple" sin puntajes numéricos, usa "isGate":true, "maxPoints":0 y dos bandas con "min":null y sus descripciones.
+- "id": identificador corto único en minúsculas sin espacios ni acentos (p. ej. "marco_teorico").
+- "instructedPages": solo si el texto menciona una extensión mínima y/o máxima de páginas; en caso contrario usa null.
+- Si el texto no es una rúbrica de evaluación o no contiene criterios evaluables, responde exactamente {"error":"..."} explicando el problema en una frase.`;
+
+async function extractRubricText(file){
+  const name = file.name.toLowerCase();
+  if(name.endsWith('.docx')){
+    const arrayBuffer = await file.arrayBuffer();
+    const result = await mammoth.convertToHtml({arrayBuffer});
+    const div = document.createElement('div');
+    div.innerHTML = result.value;
+    const lines = [];
+    // Los párrafos fuera de tablas van como líneas normales; las filas de tabla
+    // como "celda | celda | ..." para que la IA conserve la estructura.
+    div.querySelectorAll('p,h1,h2,h3,h4,h5,h6,li,tr').forEach(el=>{
+      if(el.tagName==='TR'){
+        const cells = [...el.children].map(td=>td.textContent.replace(/\s+/g,' ').trim()).filter(Boolean);
+        if(cells.length) lines.push(cells.join(' | '));
+      } else if(!el.closest('table')){
+        const t = el.textContent.replace(/\s+/g,' ').trim();
+        if(t) lines.push(t);
+      }
+    });
+    return lines.join('\n');
+  }
+  if(name.endsWith('.pdf')){
+    const {paras} = await parsePdf(file);
+    return paras.map(p=>p.text).join('\n');
+  }
+  throw new Error('Formato no soportado (usa .docx o .pdf).');
+}
+
+function normalizeRubric(obj){
+  if(!obj || typeof obj!=='object') throw new Error('estructura vacía');
+  if(obj.error) throw new Error(String(obj.error));
+  const rub = {
+    title: String(obj.title||'Rúbrica importada'),
+    instructedPages: {min:null, max:null},
+    criteria: []
+  };
+  if(obj.instructedPages && typeof obj.instructedPages==='object'){
+    rub.instructedPages.min = (obj.instructedPages.min==null||obj.instructedPages.min==='')?null:(Number(obj.instructedPages.min)||null);
+    rub.instructedPages.max = (obj.instructedPages.max==null||obj.instructedPages.max==='')?null:(Number(obj.instructedPages.max)||null);
+  }
+  const criteria = Array.isArray(obj.criteria)?obj.criteria:[];
+  criteria.forEach((c,i)=>{
+    const id = (c.id && String(c.id).trim().replace(/\s+/g,'_')) || ('crit_'+(i+1)+'_'+Date.now());
+    let bands = (Array.isArray(c.bands)?c.bands:[]).map(b=>({
+      min: (b.min==null||b.min==='')?null:(Number(b.min)||0),
+      desc: String(b.desc||b.label||'')
+    }));
+    rub.criteria.push({
+      id, name:String(c.name||('Criterio '+(i+1))),
+      isGate: !!c.isGate,
+      maxPoints: Number(c.maxPoints)||0,
+      bands: bands.length?bands:[{min:null,desc:''}]
+    });
+  });
+  if(!rub.criteria.length) throw new Error('el JSON no contiene criterios evaluables');
+  return rub;
+}
+
+async function importRubricWithAI(file){
+  if(!file) return;
+  const statusEl = document.getElementById('rubric-ai-status');
+  statusEl.textContent = '';
+  const cfg = readApiConfigInputs();
+  if(!cfg.endpoint || !cfg.key){
+    openApiDialog('Para convertir una rúbrica desde PDF/DOCX se necesita el motor de IA. Configúralo aquí (y prueba la conexión) y vuelve a pulsar "Importar rúbrica desde PDF/DOCX (IA)".');
+    return;
+  }
+  try{
+    statusEl.textContent = 'Extrayendo texto de '+file.name+'…';
+    const text = await extractRubricText(file);
+    if(text.trim().length<40) throw new Error('no se pudo extraer texto suficiente (¿PDF escaneado o de imágenes? Esta herramienta no realiza OCR).');
+    const MAXR = 20000;
+    const clipped = text.length>MAXR;
+    statusEl.textContent = 'Convirtiendo rúbrica con IA ('+text.length.toLocaleString('es')+' caracteres)…';
+    const raw = await callLLM(SYSTEM_PROMPT_RUBRIC_IMPORT, 'RÚBRICA EN TEXTO:\n\n'+text.slice(0,MAXR), 4000);
+    const parsed = parseJsonLoose(raw);
+    state.rubric = normalizeRubric(parsed);
+    renderRubric();
+    statusEl.textContent = 'Rúbrica convertida y cargada: '+state.rubric.criteria.length+' criterio(s). Revísala abajo — nombres, puntajes y bandas — y corrige lo que haga falta antes de continuar. Cuando esté conforme, usa "Exportar JSON" para guardarla y reutilizarla.'
+      +(clipped?' (Aviso: el texto se truncó a '+MAXR.toLocaleString('es')+' caracteres; verifica que no falte ningún criterio.)':'');
+  }catch(err){
+    console.error(err);
+    statusEl.textContent = 'Error al importar la rúbrica: '+err.message;
+  }
 }
 
 /* ============================================================
@@ -735,6 +853,14 @@ const API_DEFAULTS = {
 };
 const API_CFG_LS_KEY = 'dictamen-doctoral-api-cfg-v1';
 
+function openApiDialog(reason){
+  document.getElementById('api-dialog-reason').textContent = reason||'';
+  document.getElementById('api-config-dialog').showModal();
+}
+function closeApiDialog(){
+  document.getElementById('api-config-dialog').close();
+}
+
 function loadApiConfigUI(){
   let saved = null;
   try{ saved = JSON.parse(localStorage.getItem(API_CFG_LS_KEY)||'null'); }catch(e){}
@@ -769,7 +895,7 @@ function readApiConfigInputs(){
 async function callLLM(systemPrompt, userText, maxTokens){
   const cfg = readApiConfigInputs();
   if(!cfg.endpoint || !cfg.key){
-    throw new Error('Falta configurar el endpoint o la API key del motor de IA (tarjeta "Configuración del motor de IA" del paso 4).');
+    throw new Error('Falta configurar el endpoint o la API key del motor de IA (botón "⚙ Motor de IA", arriba).');
   }
   if(cfg.provider==='anthropic'){
     const response = await fetch(cfg.endpoint, {
@@ -833,7 +959,7 @@ async function testApiConnection(){
    ============================================================ */
 function renderAiModeNote(){
   const el = document.getElementById('ai-mode-note');
-  let msg = 'La evaluación con IA procesa el documento por fragmentos (≈9000 caracteres), evalúa cada uno contra la rúbrica y luego sintetiza el dictamen final con líneas de referencia ¶N · p.X. Requiere configurar el motor de IA abajo; sin IA, los pasos 1–3 (rúbrica, extracción y verificaciones deterministas) funcionan igual.';
+  let msg = 'La evaluación con IA procesa el documento por fragmentos (≈9000 caracteres), evalúa cada uno contra la rúbrica y luego sintetiza el dictamen final con líneas de referencia ¶N · p.X. Requiere el motor de IA (botón "⚙ Motor de IA", arriba); sin IA, los pasos 1–3 (rúbrica, extracción y verificaciones deterministas) funcionan igual.';
   if(state.doc){
     const n = chunkDocument(state.doc).length;
     msg += ' Este documento se dividirá en '+n+' fragmento(s).';
@@ -968,7 +1094,7 @@ async function runAIEvaluation(){
   if(!state.rubric.criteria.length){ alert('Primero define o carga una rúbrica.'); return; }
   const cfg = readApiConfigInputs();
   if(!cfg.endpoint || !cfg.key){
-    alert('Configura primero el motor de IA (proveedor, endpoint y API key) en la tarjeta "Configuración del motor de IA" de este paso.');
+    openApiDialog('Para generar el dictamen se necesita el motor de IA. Configúralo aquí (y prueba la conexión) y vuelve a pulsar "Generar dictamen con IA".');
     return;
   }
   state.chunks = chunkDocument(state.doc);
@@ -1136,7 +1262,7 @@ function exportDictamenJSON(){
    INICIALIZACIÓN
    ============================================================ */
 loadApiConfigUI();
-renderRubric(); // arranca vacío; el usuario carga el ejemplo o añade criterios
+renderRubric(); // arranca vacío; el usuario importa, carga el ejemplo o añade criterios
 </script>
 </body>
 </html>
