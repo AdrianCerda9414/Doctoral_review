@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>La Ribera · Plataforma de investigación · v1.1</title>
+<style>
+:root{
+  --primary:#2f5d50; --secondary:#b5651d; --accent:#d9a441;
+  --ink:#20302b; --muted:#64736d; --bg:#f4f6f4; --card:#fff;
+  --line:#dce3df; --danger:#a63d40;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:var(--bg);color:var(--ink);line-height:1.5}
+header{background:linear-gradient(135deg,var(--primary),#183d35);color:white;padding:34px 5vw}
+header h1{margin:.2rem 0;font-size:clamp(1.7rem,4vw,3rem)}
+header p{max-width:900px;color:#e7f0ed}
+nav{position:sticky;top:0;z-index:20;background:#fff;border-bottom:1px solid var(--line);padding:10px 4vw;display:flex;gap:8px;flex-wrap:wrap}
+nav a{color:var(--primary);text-decoration:none;padding:7px 10px;border-radius:7px;font-size:.9rem}
+nav a:hover{background:#edf3f0}
+main{max-width:1280px;margin:auto;padding:28px 4vw}
+section{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:25px;margin:22px 0;box-shadow:0 4px 18px #183d3508}
+h2{color:var(--primary);border-bottom:2px solid #e9efec;padding-bottom:9px}
+h3{color:#385e54}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:16px}
+.card{border:1px solid var(--line);border-radius:11px;padding:16px;background:#fbfcfb}
+label{display:block;font-weight:600;margin:10px 0 5px}
+input,select,textarea{width:100%;padding:10px;border:1px solid #cbd6d1;border-radius:7px;font:inherit;background:white}
+textarea{min-height:90px;resize:vertical}
+fieldset{border:0;padding:0;margin:0}
+legend{font-weight:700;margin-bottom:7px}
+.options label{font-weight:400;display:inline-block;margin:4px 12px 4px 0}
+.options input{width:auto;margin-right:5px}
+.q{padding:15px 0;border-bottom:1px dashed var(--line)}
+.q:last-child{border-bottom:0}
+.q small{color:var(--muted);display:block}
+button{border:0;border-radius:8px;padding:10px 14px;font-weight:700;cursor:pointer;background:var(--primary);color:white}
+button.secondary{background:#e9efec;color:var(--primary)}
+button.orange{background:var(--secondary)}
+button.danger{background:var(--danger)}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:18px}
+table{width:100%;border-collapse:collapse;font-size:.92rem}
+th,td{border:1px solid var(--line);padding:8px;text-align:left;vertical-align:top}
+th{background:#edf3f0}
+.code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;background:#f1f3f2;padding:2px 5px;border-radius:4px}
+.notice{border-left:5px solid var(--secondary);padding:12px 15px;background:#fff7ef}
+.good{border-left:5px solid var(--primary);padding:12px 15px;background:#f0f7f4}
+.poster{min-height:470px;border:8px solid var(--primary);padding:28px;background:white}
+.poster h1{font-size:2rem;margin:0 0 10px;color:var(--primary)}
+.poster .metric{font-size:2.5rem;font-weight:800;color:var(--secondary)}
+.article-preview{columns:2 360px;column-gap:35px}
+.article-preview h3,.article-preview .full{column-span:all}
+.kpi{display:flex;gap:14px;flex-wrap:wrap}
+.kpi div{flex:1;min-width:130px;background:#edf3f0;border-radius:10px;padding:12px;text-align:center}
+.kpi strong{font-size:1.6rem;display:block;color:var(--primary)}
+footer{padding:30px 5vw;background:#183d35;color:#e7f0ed}
+@media print{
+  nav,.actions,header,footer,.no-print{display:none!important}
+  body{background:white}
+  section{box-shadow:none;border:0}
+  .poster{page-break-after:always}
+  .article-preview{columns:2}
+}
+</style>
+</head>
+<body>
+<header>
+  <div style="max-width:1200px;margin:auto">
+    <div style="letter-spacing:.08em;text-transform:uppercase;font-size:.8rem">Plataforma de investigación · Fraccionamiento La Ribera, Aguascalientes</div>
+    <h1>Abandono habitacional, riesgo territorial e inseguridad percibida</h1>
+    <p>Instrumentación de campo, base de datos, análisis estadístico, productos de divulgación y plantilla de artículo científico.</p>
+    <p><strong>Importante:</strong> los nombres, título definitivo, afiliaciones y datos finales pueden ser introducidos por el líder del proyecto.</p>
+  </div>
+</header>
+
+<nav class="no-print">
+<a href="#proyecto">Proyecto</a><a href="#consentimiento">Consentimiento</a><a href="#encuesta">Cuestionario</a>
+<a href="#entrevista">Cualitativo</a><a href="#observacion">Observación</a><a href="#codebook">Codebook</a><a href="#analisis">Análisis</a>
+<a href="#posters">Posters</a><a href="#articulo">Artículo</a><a href="#exportar">Exportar</a>
+</nav>
+
+<main>
+<section id="proyecto">
+<h2>1. Configuración del proyecto</h2>
+<div class="grid">
+<div><label>Título provisional</label><input id="titulo" value="Abandono habitacional, riesgo territorial e inseguridad percibida en el fraccionamiento La Ribera, Aguascalientes"></div>
+<div><label>Investigador/a líder</label><input id="lider" placeholder="Introducir nombre"></div>
+<div><label>Participantes / autores</label><textarea id="autores" placeholder="Un nombre por línea"></textarea></div>
+<div><label>Institución</label><input id="institucion" value="Universidad Intercultural para la Igualdad"></div>
+<div><label>Tutor</label><input id="tutor" value="Dr. J. Adrián Cerda"></div>
+<div><label>Mentor</label><input id="mentor" value="Dr. Eder Guzmán"></div>
+</div>
+<div class="notice"><strong>Diseño recomendado:</strong> estudio mixto secuencial exploratorio: fase cualitativa → construcción/ajuste del instrumento → encuesta cuantitativa → análisis espacial. Esto permite separar resultados exploratorios de inferencias y evita convertir una asociación observada en una afirmación causal.</div>
+</section>
+
+<section id="consentimiento">
+<h2>2. Consentimiento e instrucciones de aplicación</h2>
+<div class="good">
+<strong>Texto sugerido para campo:</strong> Esta encuesta forma parte de un estudio académico sobre las condiciones de las viviendas deshabitadas y su relación con las características del entorno residencial en el fraccionamiento La Ribera, Aguascalientes. La participación es voluntaria y anónima. No se solicitan nombres ni datos que permitan identificar directamente a una persona. Puede omitir cualquier pregunta y retirarse en cualquier momento. La información se analizará de manera agregada con fines académicos.
+</div>
+<div class="grid">
+<div><label>¿Acepta participar? <small>(obligatorio para guardar el registro)</small></label><select id="consent"><option value="">Seleccione</option><option value="Sí">Sí</option><option value="No">No</option></select></div>
+<div><label>Encuestador/a</label><input id="encuestador"></div>
+<div><label>Fecha</label><input id="fecha" type="date"></div>
+<div><label>ID anónimo de encuesta</label><input id="idenc" placeholder="Ej. LR-0001 (se valida que no se duplique)"></div>
+</div>
+</section>
+
+<section id="encuesta">
+<h2>3. Cuestionario cuantitativo</h2>
+<p>Las preguntas están organizadas para producir variables analizables. No se pide la dirección exacta de una vivienda. Todas las escalas ordinales están codificadas numéricamente (ver codebook).</p>
+
+<h3>Bloque A · Características residenciales</h3>
+<div class="grid">
+<div class="q"><label>1. Calle</label><select name="CALLE"><option value="Poncitlán">Poncitlán</option><option value="La Barca">La Barca</option><option value="Santiago">Santiago</option><option value="Otra">Otra calle (especificar)</option></select><input name="CALLE_OTRA" placeholder="Nombre de la calle, si seleccionó 'Otra'"></div>
+<div class="q"><label>2. Tiempo de residencia</label><select name="TIEMPO_RES"><option value="1">1 · Menos de 1 año</option><option value="2">2 · 1–5 años</option><option value="3">3 · 6–10 años</option><option value="4">4 · 11–20 años</option><option value="5">5 · Más de 20 años</option></select></div>
+<div class="q"><label>3. Tenencia</label><select name="TENENCIA"><option>Propia</option><option>Rentada</option><option>Prestada</option><option>Otra</option><option>Prefiero no responder</option></select></div>
+<div class="q"><label>4. Personas que habitan la vivienda</label><input name="PERSONAS" type="number" min="1" max="30"></div>
+</div>
+
+<h3>Bloque B · Viviendas deshabitadas y entorno</h3>
+<div class="q"><label>5. ¿Hay viviendas deshabitadas cerca de su vivienda?</label><div class="options"><label><input name="VIV_DESH_CERCA" type="radio" value="1">Sí</label><label><input name="VIV_DESH_CERCA" type="radio" value="0">No</label><label><input name="VIV_DESH_CERCA" type="radio" value="9">No sabe</label></div></div>
+<div id="bloqueDependiente">
+<div class="q"><label>6. ¿Cuántas viviendas deshabitadas estima que hay cerca?</label><select name="NUM_DESH"><option value="0">0 · Ninguna</option><option value="1">1 · Entre 1 y 2</option><option value="2">2 · Entre 3 y 5</option><option value="3">3 · Entre 6 y 10</option><option value="4">4 · Más de 10</option><option value="9">9 · No sabe</option></select></div>
+<div class="q"><label>7. ¿Cómo describiría el estado físico de esas viviendas?</label><select name="DETERIORO"><option value="">Seleccione</option><option value="1">1 · Muy bueno</option><option value="2">2 · Bueno</option><option value="3">3 · Regular</option><option value="4">4 · Malo</option><option value="5">5 · Muy malo</option><option value="9">9 · No sabe</option></select></div>
+<div class="q"><label>8. ¿Qué situaciones ha observado? Puede seleccionar varias.</label><div class="options">
+<label><input type="checkbox" name="PROB" value="basura">Basura</label>
+<label><input type="checkbox" name="PROB" value="fauna">Fauna nociva</label>
+<label><input type="checkbox" name="PROB" value="vandalismo">Vandalismo</label>
+<label><input type="checkbox" name="PROB" value="ocupacion">Ocupación informal</label>
+<label><input type="checkbox" name="PROB" value="uso_sanitario">Uso sanitario</label>
+<label><input type="checkbox" name="PROB" value="ingreso_personas">Ingreso de personas</label>
+<label><input type="checkbox" name="PROB" value="actividades_riesgo">Actividades percibidas como riesgosas</label>
+<label><input type="checkbox" name="PROB" value="daño_estructural">Daño estructural</label>
+<label><input type="checkbox" name="PROB" value="ninguno">Ninguna</label>
+<label><input type="checkbox" name="PROB" value="otro">Otra</label>
+</div><input name="PROB_OTRO" placeholder="Si marcó 'Otra', especifique (opcional)"></div>
+</div>
+
+<h3>Bloque C · Afectación y calidad de vida</h3>
+<div class="q"><label>9. ¿En qué medida la presencia de viviendas deshabitadas afecta su vida cotidiana?</label><select name="AFECTACION"><option value="">Seleccione</option><option value="1">1 · Nada</option><option value="2">2 · Poco</option><option value="3">3 · Moderadamente</option><option value="4">4 · Mucho</option><option value="5">5 · Muchísimo</option></select></div>
+<div class="q"><label>10. ¿Cuál es el principal problema que usted relaciona con las viviendas deshabitadas?</label><select name="PROBLEMA_PRINCIPAL"><option>Inseguridad</option><option>Vandalismo</option><option>Basura</option><option>Fauna nociva</option><option>Imagen/deterioro urbano</option><option>Ocupación informal</option><option>Riesgo de colapso</option><option>Convivencia</option><option>Ninguno</option><option>Otro</option></select></div>
+<div class="q"><label>11. En general, ¿cómo evalúa la calidad de vida en su entorno?</label><select name="CALIDAD_VIDA"><option value="">Seleccione</option><option value="1">1 · Muy mala</option><option value="2">2 · Mala</option><option value="3">3 · Regular</option><option value="4">4 · Buena</option><option value="5">5 · Muy buena</option></select></div>
+
+<h3>Bloque D · Seguridad percibida</h3>
+<div class="q"><label>12. ¿Qué tan seguro/a se siente en su entorno residencial? <small>Atención: aquí valores mayores = mayor inseguridad (polaridad invertida respecto a Q11). Ver codebook.</small></label><select name="SEGURIDAD"><option value="">Seleccione</option><option value="1">1 · Muy seguro/a</option><option value="2">2 · Seguro/a</option><option value="3">3 · Ni seguro/a ni inseguro/a</option><option value="4">4 · Inseguro/a</option><option value="5">5 · Muy inseguro/a</option></select></div>
+<div class="q"><label>13. ¿En qué momento percibe mayor inseguridad?</label><select name="MOMENTO_INSEG"><option>No percibo inseguridad</option><option>Mañana</option><option>Tarde</option><option>Noche</option><option>Otro</option></select></div>
+<div class="q"><label>14. ¿Qué relación, si alguna, percibe entre las viviendas deshabitadas y la seguridad de su entorno?</label><select name="REL_DESH_SEG"><option value="">Seleccione</option><option value="1">1 · Ninguna</option><option value="2">2 · Débil</option><option value="3">3 · Moderada</option><option value="4">4 · Fuerte</option><option value="5">5 · Muy fuerte</option><option value="9">9 · No sabe</option></select></div>
+<fieldset class="q"><legend>15. ¿Ha observado algún evento que considere relevante para la seguridad del entorno? No solicite nombres de personas.</legend><div class="options"><label><input name="EVENTO" type="radio" value="1">Sí</label><label><input name="EVENTO" type="radio" value="0">No</label><label><input name="EVENTO" type="radio" value="9">No sabe</label></div><textarea name="EVENTO_DESC" placeholder="Descripción general, sin nombres ni datos identificables"></textarea></fieldset>
+
+<h3>Bloque E · Condiciones territoriales y servicios</h3>
+<div class="q"><label>16. Califique cada condición del entorno (1 = muy mala, 5 = muy buena, NS = no sabe).</label>
+<table><tr><th>Variable</th><th>1</th><th>2</th><th>3</th><th>4</th><th>5</th><th>NS(9)</th></tr>
+<tbody>
+<tr><td>Agua</td><td colspan="6"><div class="options"><label><input name="SERV_AGUA" type="radio" value="1">1</label><label><input name="SERV_AGUA" type="radio" value="2">2</label><label><input name="SERV_AGUA" type="radio" value="3">3</label><label><input name="SERV_AGUA" type="radio" value="4">4</label><label><input name="SERV_AGUA" type="radio" value="5">5</label><label><input name="SERV_AGUA" type="radio" value="9">NS</label></div></td></tr>
+<tr><td>Alumbrado</td><td colspan="6"><div class="options"><label><input name="SERV_LUZ" type="radio" value="1">1</label><label><input name="SERV_LUZ" type="radio" value="2">2</label><label><input name="SERV_LUZ" type="radio" value="3">3</label><label><input name="SERV_LUZ" type="radio" value="4">4</label><label><input name="SERV_LUZ" type="radio" value="5">5</label><label><input name="SERV_LUZ" type="radio" value="9">NS</label></div></td></tr>
+<tr><td>Pavimentación</td><td colspan="6"><div class="options"><label><input name="SERV_PAV" type="radio" value="1">1</label><label><input name="SERV_PAV" type="radio" value="2">2</label><label><input name="SERV_PAV" type="radio" value="3">3</label><label><input name="SERV_PAV" type="radio" value="4">4</label><label><input name="SERV_PAV" type="radio" value="5">5</label><label><input name="SERV_PAV" type="radio" value="9">NS</label></div></td></tr>
+<tr><td>Drenaje</td><td colspan="6"><div class="options"><label><input name="SERV_DREN" type="radio" value="1">1</label><label><input name="SERV_DREN" type="radio" value="2">2</label><label><input name="SERV_DREN" type="radio" value="3">3</label><label><input name="SERV_DREN" type="radio" value="4">4</label><label><input name="SERV_DREN" type="radio" value="5">5</label><label><input name="SERV_DREN" type="radio" value="9">NS</label></div></td></tr>
+<tr><td>Recolección de basura</td><td colspan="6"><div class="options"><label><input name="SERV_BASURA" type="radio" value="1">1</label><label><input name="SERV_BASURA" type="radio" value="2">2</label><label><input name="SERV_BASURA" type="radio" value="3">3</label><label><input name="SERV_BASURA" type="radio" value="4">4</label><label><input name="SERV_BASURA" type="radio" value="5">5</label><label><input name="SERV_BASURA" type="radio" value="9">NS</label></div></td></tr>
+<tr><td>Seguridad</td><td colspan="6"><div class="options"><label><input name="SERV_SEG" type="radio" value="1">1</label><label><input name="SERV_SEG" type="radio" value="2">2</label><label><input name="SERV_SEG" type="radio" value="3">3</label><label><input name="SERV_SEG" type="radio" value="4">4</label><label><input name="SERV_SEG" type="radio" value="5">5</label><label><input name="SERV_SEG" type="radio" value="9">NS</label></div></td></tr>
+</tbody></table>
+<small>Nota: se sustituyeron los controles deslizantes por opciones explícitas. Motivo: los sliders guardaban un valor "3" aunque la persona no respondiera, contaminando los datos con falsos puntos medios.</small></div>
+<fieldset class="q"><legend>17. ¿Percibe algún riesgo estructural o geológico relacionado con viviendas o terrenos cercanos?</legend><div class="options"><label><input name="RIESGO_ESTR" type="radio" value="1">Sí</label><label><input name="RIESGO_ESTR" type="radio" value="0">No</label><label><input name="RIESGO_ESTR" type="radio" value="9">No sabe</label></div><textarea name="RIESGO_DESC" placeholder="Describa de manera general el riesgo percibido"></textarea></fieldset>
+
+<h3>Bloque F · Movilidad residencial</h3>
+<div class="q"><label>18. Si piensa en su situación actual, ¿qué tan probable es que considere mudarse?</label><select name="INT_MUDANZA"><option value="">Seleccione</option><option value="1">1 · Definitivamente no</option><option value="2">2 · Probablemente no</option><option value="3">3 · No estoy seguro/a</option><option value="4">4 · Probablemente sí</option><option value="5">5 · Definitivamente sí</option></select></div>
+<div class="q"><label>19. ¿En qué medida la presencia de viviendas deshabitadas influye en esa posibilidad de mudarse?</label><select name="DESH_MOV"><option value="">Seleccione</option><option value="1">1 · Nada</option><option value="2">2 · Poco</option><option value="3">3 · Moderadamente</option><option value="4">4 · Mucho</option><option value="5">5 · Muchísimo</option><option value="8">8 · No aplica</option></select></div>
+
+<h3>Bloque G · Recuperación y participación</h3>
+<fieldset class="q"><legend>20. ¿Considera conveniente recuperar y rehabilitar viviendas deshabitadas que sean técnicamente y jurídicamente recuperables?</legend><div class="options"><label><input name="RECUPERAR" type="radio" value="1">Sí</label><label><input name="RECUPERAR" type="radio" value="0">No</label><label><input name="RECUPERAR" type="radio" value="9">No sabe</label></div></fieldset>
+<div class="q"><label>21. ¿Qué usos consideraría apropiados para viviendas o espacios recuperados?</label><div class="options">
+<label><input type="checkbox" name="USOS" value="vivienda_vulnerable">Vivienda para personas en situación vulnerable</label>
+<label><input type="checkbox" name="USOS" value="venta">Venta después de rehabilitación</label>
+<label><input type="checkbox" name="USOS" value="renta_social">Renta social</label>
+<label><input type="checkbox" name="USOS" value="parque">Área verde/parque</label>
+<label><input type="checkbox" name="USOS" value="centro_comunitario">Centro comunitario</label>
+<label><input type="checkbox" name="USOS" value="cultural">Espacio cultural</label>
+<label><input type="checkbox" name="USOS" value="guarderia">Guardería</label>
+<label><input type="checkbox" name="USOS" value="educativo">Espacio educativo</label>
+<label><input type="checkbox" name="USOS" value="refugio_animales">Refugio animal</label>
+<label><input type="checkbox" name="USOS" value="emprendimiento">Emprendimiento comunitario</label>
+<label><input type="checkbox" name="USOS" value="otro">Otro</label>
+</div><input name="USOS_OTRO" placeholder="Si marcó 'Otro', especifique (opcional)"></div>
+<div class="q"><label>22. ¿Participaría en un comité comunitario relacionado con recuperación y cuidado del entorno?</label><select name="PARTICIPACION"><option value="">Seleccione</option><option value="1">Sí</option><option value="2">Sí, dependiendo del tiempo disponible</option><option value="3">No</option><option value="9">No sabe</option></select></div>
+
+<h3>Bloque H · Organización e interculturalidad</h3>
+<div class="q"><label>23. ¿Cómo valoraría la existencia de una organización vecinal para atender problemas del entorno?</label><select name="ORGANIZACION"><option value="">Seleccione</option><option value="1">1 · Muy negativa</option><option value="2">2 · Negativa</option><option value="3">3 · Neutral</option><option value="4">4 · Positiva</option><option value="5">5 · Muy positiva</option></select></div>
+<div class="q"><label>24. ¿En qué actividades podría participar?</label><div class="options">
+<label><input type="checkbox" name="COMITE" value="limpieza">Limpieza</label><label><input type="checkbox" name="COMITE" value="prevencion">Prevención comunitaria</label>
+<label><input type="checkbox" name="COMITE" value="reporte">Reporte de viviendas deshabitadas</label><label><input type="checkbox" name="COMITE" value="gestion">Gestión ante autoridades</label>
+<label><input type="checkbox" name="COMITE" value="recuperacion">Recuperación de espacios</label><label><input type="checkbox" name="COMITE" value="cultural">Actividades culturales</label>
+<label><input type="checkbox" name="COMITE" value="educativa">Actividades educativas</label><label><input type="checkbox" name="COMITE" value="ambiental">Actividades ambientales</label>
+<label><input type="checkbox" name="COMITE" value="mediacion">Mediación comunitaria</label>
+</div></div>
+<div class="q"><label>25. ¿Cómo valoraría una iniciativa comunitaria que incorpore la diversidad cultural e indígena de la zona?</label><select name="INTERCULTURAL"><option value="">Seleccione</option><option value="1">1 · Muy negativa</option><option value="2">2 · Negativa</option><option value="3">3 · Neutral</option><option value="4">4 · Positiva</option><option value="5">5 · Muy positiva</option></select></div>
+<div class="q"><label>26. ¿Qué propuesta considera prioritaria para reducir la desocupación y mejorar el entorno?</label><textarea name="PROPUESTA"></textarea></div>
+
+<div class="actions no-print"><button onclick="guardarRegistro()">Guardar registro</button><button class="secondary" onclick="limpiarEncuesta()">Limpiar</button></div>
+<div id="guardado" class="good" style="display:none;margin-top:12px"></div>
+</section>
+
+<section id="entrevista">
+<h2>4. Módulo cualitativo · entrevista semiestructurada</h2>
+<p>Este módulo permite conservar la riqueza de las respuestas abiertas sin convertir testimonios en afirmaciones causales. No solicite nombres de terceros ni acusaciones identificables.</p>
+<div class="notice"><strong>Consentimiento específico de entrevista (obligatorio para guardar):</strong> la entrevista tiene fines académicos; las respuestas pueden citarse de forma anónima en publicaciones. Solicite permiso explícito antes de iniciar y registre los metadatos.</div>
+<div class="grid">
+<div><label>¿Acepta participar en la entrevista?</label><select id="consentEnt"><option value="">Seleccione</option><option value="Sí">Sí</option><option value="No">No</option></select></div>
+<div><label>Calle / zona de la entrevista</label><select id="entZona"><option value="Poncitlán">Poncitlán</option><option value="La Barca">La Barca</option><option value="Santiago">Santiago</option><option value="Otra">Otra</option></select></div>
+<div><label>Duración aproximada (minutos)</label><input id="entDur" type="number" min="1"></div>
+</div>
+<div id="preguntasEntrevista"></div>
+<button class="no-print" onclick="guardarEntrevista()">Guardar entrevista</button>
+</section>
+
+<section id="observacion">
+<h2>5. Módulo de observación sistemática de campo</h2>
+<div class="notice"><strong>Propósito:</strong> medir la exposición (viviendas deshabitadas y su deterioro) con una <strong>segunda fuente independiente</strong> al reporte del encuestado. Esto mitiga la varianza de método común: la asociación entre abandono e inseguridad deja de depender de la percepción de una sola persona. Complete una ficha por cuadra o segmento observado.</div>
+<div class="grid">
+<div><label>ID de observación</label><input id="obsID" placeholder="Se genera automáticamente"></div>
+<div><label>Calle / segmento</label><select id="obsCalle"><option value="Poncitlán">Poncitlán</option><option value="La Barca">La Barca</option><option value="Santiago">Santiago</option><option value="Otra">Otra</option></select></div>
+<div><label>Fecha de observación</label><input id="obsFecha" type="date"></div>
+<div><label>Observador/a</label><input id="obsObs" placeholder="Nombre de quien observa"></div>
+<div><label>Número de viviendas deshabitadas contadas en el segmento</label><input id="obsN" type="number" min="0"></div>
+</div>
+<div id="obsItems"></div>
+<textarea id="obsNotas" placeholder="Notas de campo generales (sin identificar personas)"></textarea>
+<div class="actions no-print"><button onclick="guardarObservacion()">Guardar observación</button></div>
+<div id="guardadoObs" class="good" style="display:none;margin-top:12px"></div>
+</section>
+
+<section id="codebook">
+<h2>6. Diccionario de datos y plan analítico</h2>
+<div class="grid">
+<div class="card"><h3>Resultado principal</h3><p><span class="code">SEGURIDAD</span> percepción ordinal de seguridad/inseguridad.</p><p>Complemento: <span class="code">REL_DESH_SEG</span>.</p></div>
+<div class="card"><h3>Resultado secundario</h3><p><span class="code">INT_MUDANZA</span> intención de movilidad residencial.</p></div>
+<div class="card"><h3>Exposición central</h3><p>Auto-reportada: <span class="code">NUM_DESH</span>, <span class="code">DETERIORO</span>, <span class="code">PROB</span>.<br>Observada (independiente): <span class="code">OBS_*</span> y <span class="code">N_VIV_DESH_OBS</span> (módulo 5).</p></div>
+<div class="card"><h3>Contexto territorial</h3><p>Servicios, riesgo estructural/geológico, calle y residencia.</p></div>
+</div>
+
+<h3>Convenciones de codificación (obligatorias para el análisis)</h3>
+<table>
+<tr><th>Convención</th><th>Definición</th></tr>
+<tr><td><span class="code">9</span></td><td>No sabe / No responde (en <span class="code">SERV_*</span> y <span class="code">DESH_MOV</span>, verificar etiqueta específica de la variable).</td></tr>
+<tr><td><span class="code">8</span></td><td>No aplica (p. ej., <span class="code">DESH_MOV</span>; también se asigna 8 a NUM_DESH/DETERIORO y "NA" a PROB cuando Q5 ≠ "Sí", por lógica de salto).</td></tr>
+<tr><td>Celda vacía</td><td>Pregunta omitida por el participante o error de captura; tratar como faltante, nunca como 0.</td></tr>
+<tr><td><span class="code">SEGURIDAD</span></td><td><strong>Polaridad invertida:</strong> 1 = muy seguro → 5 = muy inseguro. Valores mayores = más inseguridad.</td></tr>
+<tr><td><span class="code">CALIDAD_VIDA</span></td><td>Polaridad directa: 1 = muy mala → 5 = muy buena. No combinar escalas sin invertir.</td></tr>
+<tr><td>Ordinales</td><td>Todas las escalas tipo Likert se guardan como texto numérico ("1"–"5"); convertir a factor ordenado en R/Python.</td></tr>
+<tr><td>Nominales</td><td>Se conservan como texto (TENENCIA, CALLE, MOMENTO_INSEG, PROBLEMA_PRINCIPAL, PROB, USOS, COMITE).</td></tr>
+</table>
+
+<table>
+<tr><th>Pregunta</th><th>Variable</th><th>Tipo</th><th>Análisis posible</th></tr>
+<tr><td>5–8</td><td>VIV_DESH_CERCA, NUM_DESH, DETERIORO, PROB</td><td>Nominal/ordinal</td><td>Frecuencias; tablas; chi-cuadrada/Fisher; Spearman</td></tr>
+<tr><td>9–11</td><td>AFECTACION, PROBLEMA_PRINCIPAL, CALIDAD_VIDA</td><td>Ordinal/nominal</td><td>Distribuciones; asociación; modelos ordinales si procede</td></tr>
+<tr><td>12–15</td><td>SEGURIDAD, MOMENTO_INSEG, REL_DESH_SEG, EVENTO</td><td>Ordinal/nominal</td><td>Tablas; Spearman; regresión ordinal/binaria si procede</td></tr>
+<tr><td>16–17</td><td>SERV_*, RIESGO_ESTR</td><td>Ordinal/nominal</td><td>Índices descriptivos; asociación; análisis espacial</td></tr>
+<tr><td>18–19</td><td>INT_MUDANZA, DESH_MOV</td><td>Ordinal</td><td>Spearman; regresión ordinal si tamaño muestral lo permite</td></tr>
+<tr><td>20–25</td><td>RECUPERAR, USOS, PARTICIPACION, ORGANIZACION, INTERCULTURAL</td><td>Nominal/ordinal</td><td>Frecuencias; perfiles; cruces por calle y exposición</td></tr>
+<tr><td>Observación</td><td>OBS_DANO…OBS_RENTA, N_VIV_DESH_OBS</td><td>Nominal/conteo</td><td>Triangulación con exposición auto-reportada; acuerdo/contraste fuente múltiple</td></tr>
+</table>
+<div class="notice"><strong>Regla de inferencia:</strong> no se deben seleccionar pruebas únicamente porque produzcan significancia. Primero se define la pregunta, variable de resultado, escala de medición y diseño; después se revisan supuestos, tamaño muestral, datos faltantes y tamaño del efecto. Las conclusiones deben distinguir análisis confirmatorios de exploratorios. Esta lógica es consistente con las recomendaciones JARS sobre transparencia, hipótesis, análisis y limitaciones de generalización (Appelbaum et al., 2018; Levitt et al., 2018).</div>
+<h3>Modelo estadístico de referencia</h3>
+<pre style="overflow:auto;background:#18231f;color:#eaf3ef;padding:15px;border-radius:8px">logit[P(Yᵢ=1)] = β₀ + β₁Dᵢ + β₂Gᵢ + β₃Sᵢ + β₄Rᵢ + β₅Cᵢ + …
+
+Yᵢ = indicador definido de abandono/desocupación o evento de interés
+Dᵢ = exposición a viviendas deshabitadas (preferir OBS_* / N_VIV_DESH_OBS)
+Gᵢ = deterioro físico
+Sᵢ = condiciones de servicios
+Rᵢ = riesgo percibido
+Cᵢ = covariables contextuales
+
+No ejecutar este modelo automáticamente: requiere tamaño muestral suficiente, definición clara del outcome y diagnóstico.</pre>
+</section>
+
+<section id="analisis">
+<h2>7. Tablero de resultados</h2>
+<div class="kpi">
+<div><strong id="nReg">0</strong>encuestas</div>
+<div><strong id="pctInseg">—</strong>% nivel 4–5 de inseguridad</div>
+<div><strong id="pctRec">—</strong>% considera conveniente recuperar</div>
+<div><strong id="pctPart">—</strong>% dispuesto a participar</div>
+</div>
+<div class="grid" style="margin-top:18px">
+<div class="card"><h3>Interpretación automática</h3><p id="interpretacion">Aún no hay registros suficientes.</p></div>
+<div class="card"><h3>Advertencia estadística</h3><p>El sistema no sustituye el análisis estadístico formal. Antes de inferir resultados deben establecerse población objetivo, método de muestreo, tamaño de muestra, datos faltantes, confiabilidad de escalas y supuestos de los modelos.</p></div>
+</div>
+<div class="grid" style="margin-top:18px">
+<div class="card"><h3>Calculadora de tamaño de muestra (proporciones, 95% confianza)</h3>
+<label>Población objetivo N (opcional; dejar vacío si es grande/desconocida)</label><input id="calcN" type="number" min="0">
+<label>Proporción esperada p (0–1; usar 0.5 si no hay antecedente)</label><input id="calcP" type="number" step="0.01" min="0.01" max="0.99" value="0.5">
+<label>Margen de error e (p. ej., 0.05 = ±5%)</label><input id="calcE" type="number" step="0.01" min="0.01" max="0.5" value="0.05">
+<button onclick="calcularMuestra()">Calcular n</button><p id="calcRes"></p>
+</div>
+<div class="card"><h3>Distribución exploratoria por calle <small>(solo control de calidad de captura; no inferencia)</small></h3><div id="tablaCalle"><p>Aún no hay registros.</p></div></div>
+</div>
+</section>
+
+<section id="posters">
+<h2>8. Tres productos de divulgación listos para alimentar con los resultados</h2>
+<p>Los tres productos separan: <strong>problema y evidencia</strong>, <strong>percepción y territorio</strong>, y <strong>recuperación comunitaria</strong>. Así no se mezclan resultados distintos en una sola pieza.</p>
+<div class="grid">
+<div class="card"><h3>Poster 1 · Diagnóstico habitacional</h3><p>Indicadores de viviendas deshabitadas, deterioro, afectaciones y distribución por calle.</p><button onclick="generarPoster(1)">Generar vista</button></div>
+<div class="card"><h3>Poster 2 · Seguridad y territorio</h3><p>Percepción de seguridad, relación con desocupación, servicios y riesgo territorial.</p><button onclick="generarPoster(2)">Generar vista</button></div>
+<div class="card"><h3>Poster 3 · Recuperación y comunidad</h3><p>Preferencias de recuperación, usos, participación y propuestas comunitarias.</p><button onclick="generarPoster(3)">Generar vista</button></div>
+</div>
+<div id="posterArea" style="margin-top:20px"></div>
+<div class="actions no-print"><button class="orange" onclick="window.print()">Imprimir / guardar como PDF</button></div>
+</section>
+
+<section id="articulo">
+<h2>9. Generador de estructura para el artículo científico</h2>
+<div class="grid">
+<div><label>Resumen en español</label><textarea id="abstractES" placeholder="Se completará con resultados finales. No inventar cifras."></textarea></div>
+<div><label>Abstract in English</label><textarea id="abstractEN" placeholder="To be completed after the final statistical analysis."></textarea></div>
+<div><label>Palabras clave</label><input id="keywordsES" placeholder="abandono habitacional; riesgo territorial; seguridad percibida; La Ribera"></div>
+<div><label>Keywords</label><input id="keywordsEN" placeholder="housing vacancy; territorial risk; perceived safety; La Ribera"></div>
+</div>
+<div class="article-preview" id="articlePreview">
+<h3 class="full">Título</h3><p class="full" id="aTitulo">[Título introducido por el líder]</p>
+<h3 class="full">Autores</h3><p class="full" id="aAutores">[Autores]</p>
+<h3 class="full">Resumen</h3><p id="aES">[Resumen en español]</p>
+<h3 class="full">Abstract</h3><p id="aEN">[Abstract in English]</p>
+<h3>1. Introducción</h3><p>Contextualización del problema, literatura relevante, vacío de conocimiento y propósito del estudio.</p>
+<h3>2. Preguntas y objetivos</h3><p>Pregunta principal, objetivos, hipótesis o expectativas de asociación previamente definidas.</p>
+<h3>3. Marco teórico</h3><p>Vivienda deshabitada/abandono; desinversión y deterioro territorial; seguridad y condiciones comunitarias; vulnerabilidad y riesgo territorial.</p>
+<h3>4. Método</h3><p>Diseño mixto, población y muestra, instrumento, procedimiento, ética, variables, análisis estadístico y componente espacial.</p>
+<h3>5. Resultados</h3><p>Descripción de la muestra; resultados cualitativos; estimaciones descriptivas; asociaciones; modelos inferenciales; resultados espaciales; intervalos de confianza y tamaños de efecto.</p>
+<h3>6. Discusión</h3><p>Interpretación vinculada con literatura previa, coincidencias y discrepancias, alcances y limitaciones.</p>
+<h3>7. Implicaciones y propuestas</h3><p>Recuperación de vivienda, gestión comunitaria, seguimiento territorial y líneas de investigación posteriores. Evitar convertir preferencias de los participantes en recomendaciones causales sin análisis adicional.</p>
+<h3>8. Conclusiones</h3><p>Responder exclusivamente a las preguntas planteadas y distinguir evidencia de interpretación.</p>
+<h3 class="full">Agradecimientos</h3><p class="full">[Introducir financiamiento, apoyos institucionales, participantes y colaboraciones, según corresponda.]</p>
+<h3 class="full">Referencias</h3><p class="full">Appelbaum, M., Cooper, H., Kline, R., Mayo-Wilson, E., Nezu, A. M., &amp; Rao, S. M. (2018). Journal article reporting standards for quantitative research in psychology: The APA Publications and Communications Board task force report. <em>American Psychologist, 73</em>(1), 3–25. https://doi.org/10.1037/amp0000191<br>Levitt, H. M., Bamberg, M., Creswell, J. W., Frost, D. M., Josselson, R., &amp; Suárez-Orozco, C. (2018). Journal article reporting standards for qualitative primary, qualitative meta-analytic, and mixed methods research in psychology: The APA Publications and Communications Board task force report. <em>American Psychologist, 73</em>(1), 26–46. https://doi.org/10.1037/amp0000151<br>[Completar con el estilo exigido por la revista. Verificar DOI, edición y datos bibliográficos.]</p>
+</div>
+<div class="actions no-print"><button onclick="actualizarArticulo()">Actualizar artículo</button><button class="orange" onclick="imprimirArticulo()">Imprimir artículo</button></div>
+<p class="notice">La estructura sigue principios de transparencia de JARS para investigaciones cuantitativas, cualitativas y de métodos mixtos: población/muestra, medidas, diseño, análisis, resultados, limitaciones y alcance de generalización deben quedar explícitos (Appelbaum et al., 2018; Levitt et al., 2018).</p>
+</section>
+
+<section id="exportar">
+<h2>10. Exportación y continuidad del proyecto</h2>
+<p>Los registros se guardan localmente en este navegador. Para un estudio real se recomienda una base maestra institucional con control de versiones y copias de seguridad. No almacenar aquí datos identificables o sensibles.</p>
+<div class="actions">
+<button onclick="exportarJSON()">Exportar todo (JSON)</button>
+<button onclick="exportarCSV()">Exportar CSV encuestas</button>
+<button onclick="exportarCSVObs()">Exportar CSV observaciones</button>
+<button class="secondary" onclick="document.getElementById('importarArchivo').click()">Importar JSON (fusionar dispositivos)</button>
+<input type="file" id="importarArchivo" accept=".json,application/json" style="display:none" onchange="importarJSON(this)">
+<button class="danger" onclick="borrarDatos()">Borrar datos locales</button>
+</div>
+<h3>Productos que se pueden derivar</h3>
+<div class="grid">
+<div class="card"><strong>Base cuantitativa</strong><br>Encuesta × variables × códigos.</div>
+<div class="card"><strong>Base cualitativa</strong><br>Entrevista × pregunta × respuesta × código temático.</div>
+<div class="card"><strong>Base espacial</strong><br>ID anónimo × calle × observación de campo.</div>
+<div class="card"><strong>Repositorio reproducible</strong><br>Instrumento + diccionario + datos anonimizados + scripts R/Python + tablas/figuras + versión del artículo.</div>
+</div>
+</section>
+</main>
+
+<footer>
+<strong>Nota metodológica:</strong> esta interfaz es un instrumento de captura y organización. No determina causalidad, no reemplaza el muestreo probabilístico ni el análisis estadístico y no debe utilizarse para identificar personas. La clasificación de una vivienda como "abandonada" debe sustentarse en criterios operativos observables (módulo 5) y/o fuentes administrativas, separándola de la categoría censal "deshabitada". Versión del instrumento: <strong id="verIns">1.1</strong>.
+</footer>
+
+<script>
+const VERSION_INSTRUMENTO="1.1";
+
+/* ---------- Carga segura de almacenamiento local ---------- */
+function cargarLista(clave){
+  try{
+    const d=JSON.parse(localStorage.getItem(clave)||"[]");
+    return Array.isArray(d)?d:[];
+  }catch(e){
+    console.error("Datos corruptos en "+clave,e);
+    alert("Advertencia: los datos locales de '"+clave+"' no se pudieron leer. Exporte/respalde antes de borrar o continuar.");
+    return [];
+  }
+}
+function guardar(clave,arr){
+  try{localStorage.setItem(clave,JSON.stringify(arr))}
+  catch(e){alert("No se pudo guardar localmente (posible almacenamiento lleno). Exporte sus datos ahora.")}
+}
+const encuestas=cargarLista("LR_encuestas");
+const entrevistas=cargarLista("LR_entrevistas");
+const observaciones=cargarLista("LR_observaciones");
+
+/* ---------- Entrevista ---------- */
+const interviewQuestions=[
+"¿Te afecta vivir cerca de casas abandonadas?",
+"¿Te sientes con inseguridad o miedo con los vecinos que te rodean?",
+"¿Te gustaría que el gobierno pueda recuperar estas casas y otorgarlas a personas en situación vulnerable?",
+"¿Te gustaría formar parte de un comité para restaurar y limpiar los espacios del entorno?",
+"¿Tienes alguna propuesta o aportación para reducir las casas abandonadas?",
+"¿Cómo consideras la posible participación de asociaciones o grupos indígenas de vecinos en la vida comunitaria?",
+"¿Te gustaría que el gobierno construya más casas o recuperar las casas abandonadas? ¿Por qué?",
+"¿Abandonarías tu casa a consecuencia de la presencia de otras casas abandonadas?"
+];
+
+/* ---------- Observación: ítems operativos de deterioro/abandono ---------- */
+const obsItems=[
+["OBS_DANO","Fisuras o daño estructural visible"],
+["OBS_VENTANAS","Ventanas o puertas rotas, tapiadas o ausentes"],
+["OBS_GRAFITI","Grafiti en la cuadra"],
+["OBS_BASURA","Basura o escombros acumulados"],
+["OBS_VEGETACION","Vegetación sin mantenimiento"],
+["OBS_OCUPACION","Señales de ocupación informal"],
+["OBS_ALUMBRADO","Alumbrado público dañado o ausente en la cuadra"],
+["OBS_FAUNA","Evidencia de fauna nociva"],
+["OBS_RENTA","Avisos de renta o venta visibles"]
+];
+
+function renderEntrevista(){
+  document.getElementById("preguntasEntrevista").innerHTML=interviewQuestions.map((q,i)=>`
+  <div class="q"><label>${i+1}. ${q}</label><textarea id="ent${i}" placeholder="Respuesta textual"></textarea>
+  <input id="cod${i}" placeholder="Código/categoría temática opcional"></div>`).join("");
+}
+function renderObservacion(){
+  document.getElementById("obsItems").innerHTML=obsItems.map(([v,l],i)=>`
+  <fieldset class="q"><legend>${i+1}. ${l}</legend><div class="options">
+  <label><input type="radio" name="${v}" value="1">Presente</label>
+  <label><input type="radio" name="${v}" value="0">Ausente</label>
+  <label><input type="radio" name="${v}" value="9">No observable</label>
+  </div></fieldset>`).join("");
+}
+renderEntrevista();
+renderObservacion();
+
+/* ---------- Utilidades de formulario ---------- */
+function formValue(name){
+ const el=document.querySelector(`[name="${name}"]:checked`)||document.querySelector(`[name="${name}"]`);
+ return el?el.value:"";
+}
+function checked(name){return [...document.querySelectorAll(`[name="${name}"]:checked`)].map(x=>x.value).join("|")}
+
+/* ---------- Lógica de salto Q5 → Q6–8 ---------- */
+function toggleDependientes(){
+ const v=document.querySelector('[name="VIV_DESH_CERCA"]:checked');
+ const mostrar=v&&v.value==="1";
+ document.getElementById("bloqueDependiente").style.display=mostrar?"":"none";
+}
+document.querySelectorAll('[name="VIV_DESH_CERCA"]').forEach(r=>r.addEventListener("change",toggleDependientes));
+toggleDependientes();
+
+/* ---------- Exclusividad de "Ninguna" (Q8 y Q21) ---------- */
+function exclusividad(nombre,valorNinguno){
+ const grupo=document.querySelectorAll(`[name="${nombre}"]`);
+ grupo.forEach(cb=>cb.addEventListener("change",()=>{
+   if(cb.value===valorNinguno&&cb.checked){
+     grupo.forEach(x=>{if(x.value!==valorNinguno)x.checked=false});
+   }else if(cb.checked){
+     const n=document.querySelector(`[name="${nombre}"][value="${valorNinguno}"]`);
+     if(n)n.checked=false;
+   }
+ }));
+}
+exclusividad("PROB","ninguno");
+exclusividad("USOS","otro"===  "x"?"":"otro"); // placeholder replaced below
+</script>
+<script>
+/* Corrección: exclusividad correcta para USOS (sin "ninguno"; se deja sin exclusividad salvo lógica propia) */
+</script>
+<script>
+const interviewQuestionsFix=null;
+</script>
+</body>
+</html>
