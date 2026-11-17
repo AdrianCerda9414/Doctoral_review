@@ -51,6 +51,7 @@ th{color:var(--muted);font-weight:500;font-size:12px;background:var(--surface-2)
 .badge.scope{background:var(--sug-bg);border-color:var(--sug);color:var(--sug)}
 .info-box{background:var(--surface-2);border:1px solid var(--border);border-radius:var(--r);padding:10px 14px;font-size:12.5px;color:var(--muted);margin-bottom:14px}
 .warn-box{background:var(--imp-bg);border:1px solid var(--imp);border-radius:var(--r);padding:9px 13px;font-size:12.5px;margin-bottom:14px}
+.err-box{background:var(--crit-bg);border:1px solid var(--crit);border-radius:var(--r);padding:9px 13px;font-size:12.5px;margin:8px 0;color:var(--ink)}
 .dropzone{border:1px dashed var(--border-strong);border-radius:var(--r);padding:30px;text-align:center;color:var(--muted);background:var(--surface)}
 .dropzone.drag{border-color:var(--accent);color:var(--accent)}
 .ref{font-family:var(--mono);font-size:12px;color:var(--muted)}
@@ -104,6 +105,7 @@ dialog::backdrop{background:rgba(31,41,51,.38)}
 dialog select{width:100%}
 details.help{margin:8px 0;font-size:12.5px}
 details.help summary{cursor:pointer;color:var(--muted)}
+a{color:var(--sug)}
 .print-header{display:none}
 @page{size:letter;margin:20mm}
 @media (max-width:820px){.app{flex-direction:column}nav.stepper{width:auto;flex:none;border-right:none;border-bottom:1px solid var(--border)}nav.stepper ol{display:flex;gap:16px;overflow-x:auto}nav.stepper li{padding:0}nav.stepper li:not(:last-child)::before{display:none}nav.stepper .label{display:none}}
@@ -318,11 +320,19 @@ details.help summary{cursor:pointer;color:var(--muted)}
         </optgroup>
       </select>
     </div>
-    <div class="field"><label for="cfg-model">Modelo</label><input type="text" id="cfg-model" style="width:100%"></div>
+    <div class="field"><label for="cfg-model">Modelo</label><input type="text" id="cfg-model" style="width:100%" oninput="updateApiBadge()"></div>
   </div>
   <div class="field"><label for="cfg-endpoint">Endpoint</label><input type="text" id="cfg-endpoint" style="width:100%"></div>
   <div class="field"><label for="cfg-key">API key</label><input type="password" id="cfg-key" style="width:100%" autocomplete="off"></div>
+
+  <div class="toolbar" style="margin:4px 0 6px">
+    <a id="model-docs" href="#" target="_blank" rel="noopener" style="font-size:12.5px"></a>
+    <button class="small" id="btn-list-models" onclick="listGeminiModels()" style="display:none">Listar modelos disponibles (Gemini)</button>
+  </div>
+  <div class="chip-row" id="model-suggestions"></div>
+
   <label style="display:flex;gap:6px;align-items:center;margin-bottom:8px"><input type="checkbox" id="cfg-remember" checked> Recordar en este navegador (localStorage)</label>
+  <div class="warn-box"><strong>Clave en la nube:</strong> se guarda en el navegador solo si marcas "Recordar". Para proveedores locales no es necesaria.</div>
   <div class="toolbar" style="margin:0">
     <button class="primary" onclick="testConnection()">Probar conexión</button>
     <button onclick="closeApiDialog()">Guardar y cerrar</button>
@@ -332,7 +342,7 @@ details.help summary{cursor:pointer;color:var(--muted)}
     <summary>Cómo obtener una clave gratuita o usar Ollama</summary>
     <table>
       <tr><th>Proveedor</th><th>Cómo empezar</th></tr>
-      <tr><td>Google AI Studio</td><td>aistudio.google.com → Get API key. Modelo sugerido: <span class="ref">gemini-2.5-flash</span>.</td></tr>
+      <tr><td>Google AI Studio</td><td>aistudio.google.com → Get API key. Si el modelo predeterminado da error 404, usa <strong>Listar modelos disponibles</strong> y elige uno de la lista.</td></tr>
       <tr><td>Groq</td><td>console.groq.com → API Keys.</td></tr>
       <tr><td>OpenRouter</td><td>openrouter.ai → Keys. Modelo <span class="ref">openrouter/free</span>.</td></tr>
       <tr><td>Ollama (sin internet)</td><td>ollama.com. Ejecuta <span class="ref">ollama pull qwen2.5:7b</span>. En Windows o si hay error CORS: <span class="ref">set OLLAMA_ORIGINS=*</span> antes de <span class="ref">ollama serve</span>. En macOS: <span class="ref">launchctl setenv OLLAMA_ORIGINS "*"</span> y reinicia Ollama.</td></tr>
@@ -370,7 +380,7 @@ const state = {
   meta:{student:'', director:'', title:'', n:'', minPages:125, population:''},
   doc:null, docHash:'', docNorm:'',
   scope:{mode:'all', fromIdx:0, toIdx:0, selected:new Set(), includePrelim:true},
-  det:null, chunks:[], observations:[], synthesis:null,
+  det:null, chunks:[], chunkSummaries:[], observations:[], synthesis:null,
   decisions:{}, view:'ejecutivo', secondPass:false,
   filters:{sev:{critica:true,importante:true,sugerencia:true}, dim:'todas', status:'todas', verified:'todas'}
 };
@@ -606,7 +616,7 @@ async function handleFile(f){
     state.docHash = djb2(state.docNorm);
     loadDecisions();
     state.scope = {mode:'all', fromIdx:0, toIdx:Math.max(0,headings.length-1), selected:new Set(headings.map((_,i)=>i)), includePrelim:true};
-    state.det=null; state.observations=[]; state.synthesis=null;
+    state.det=null; state.observations=[]; state.synthesis=null; state.chunkSummaries=[];
     if(!state.meta.student){ const auto = detectStudentName(paragraphs); if(auto){ state.meta.student=auto; } }
     renderDocInfo();
     st.textContent='';
@@ -839,7 +849,6 @@ function runDeterministic(){
   const F=[], M={};
   const add=(sev,area,anchor,detail,fix)=>F.push({sev,area,anchor:anchor||'',detail,fix:fix||''});
 
-  // Preliminares (documento completo)
   const iRes=all.findIndex(p=>/^RESUMEN$/i.test(p.text.trim()));
   if(iRes>=0){
     let txt=[], j=iRes+1;
@@ -870,7 +879,6 @@ function runDeterministic(){
   const idx=(re)=>all.findIndex(p=>re.test(p.text.trim()));
   if(idx(/^[IÍ]NDICE/i)<0) add('importante','Índices','','No se localizó el índice general.','Incluye tabla de contenido, de tablas y de figuras.');
 
-  // Citas ↔ referencias
   if(R.end>=all.length) add('critica','Referencias','','No se localizó la sección REFERENCIAS.','Agrega la lista de referencias en APA 7.');
   const inText=extractInText(all.slice(R.start,R.end));
   const refs=extractRefs(all,R);
@@ -883,7 +891,6 @@ function runDeterministic(){
   if(unused.length) add('sugerencia','Citas ↔ referencias','',`${unused.length} referencia(s) no se citan en el cuerpo: ${unused.slice(0,8).map(k=>k.replace('|',', ')).join('; ')}.`,'Cita la fuente o retírala de la lista.');
   M.missingCites=missing.length; M.unusedRefs=unused.length;
 
-  // Estadística y confiabilidad (cuerpo + alcance)
   const body=scoped.filter(inBody);
   const prose=body.filter(p=>!p.isTableRow);
   const noP=prose.filter(p=>/signific/i.test(p.text) && !/\bp\s*[<=>≤≥]|\bp\s*=\s*0?[.,]\d/i.test(p.text) && !/\bIC\b|intervalo/i.test(p.text));
@@ -903,7 +910,6 @@ function runDeterministic(){
   if(n && n<50 && /^(Cuant|Mixto)/.test(state.studyApproach)) add('importante','Muestra',`n = ${n}`,'Muestra menor de 50 en diseño cuantitativo o mixto (mínimo de la rúbrica).','Justifica el tamaño o amplía la muestra.');
   if(!n) add('sugerencia','Muestra','','No se detectó el tamaño muestral; captúralo en el paso 2 para validarlo.','');
 
-  // Redacción y estilo
   const longP=prose.filter(p=>wc(p.text)>300);
   const multiS=prose.filter(p=>wc(p.text)>=60 && p.text.split(/(?<=[.!?])\s+(?=[A-ZÁÉÍÓÚÑ¿¡])/).length>4);
   if(longP.length) add('sugerencia','Redacción',paragraphAnchor(longP[0]),`${longP.length} párrafo(s) superan 300 palabras (≈25 líneas); la rúbrica pide 7–14 líneas.`,'Divide en párrafos de tres oraciones: idea, desarrollo y cierre.');
@@ -920,7 +926,6 @@ function runDeterministic(){
   scoped.filter(p=>/¿\s*no\s+(cree|piensa|considera)|es cierto que|obviamente|evidentemente|sin duda/i.test(p.text)).slice(0,5).forEach(p=>add('importante','Reactivos inductores',paragraphAnchor(p),'Redacción inductora: orienta hacia una respuesta esperada.','Reformula de manera neutral.'));
   M.firstPerson=fpar.length;
 
-  // Estructura: tablas y figuras
   const caps={Tabla:new Set(),Figura:new Set()}, mentions={Tabla:new Set(),Figura:new Set()};
   all.forEach(p=>{ const m=p.text.match(/^\s*(Tabla|Figura)\s+(\d{1,2})(?=\s|\.|$)/); if(m) caps[m[1]].add(+m[2]); });
   body.forEach(p=>{ for(const m of p.text.matchAll(/\b(Tabla|Figura)\s+(\d{1,2})\b/g)) mentions[m[1]].add(+m[2]); });
@@ -933,9 +938,8 @@ function runDeterministic(){
 
   scoped.filter(p=>p.isHeading).forEach(h=>{ const i=all.indexOf(h); let j=i+1; while(j<all.length && all[j].text.trim()==='') j++; if(j>=all.length || all[j].isHeading) add('importante','Estructura',paragraphAnchor(h),`El apartado §${h.sectionRef} no tiene contenido antes del siguiente encabezado.`,'Desarrolla o elimina el apartado.'); });
 
-  // Componentes esperados
   const comp=checkComponents(scoped, state.artifactType);
-  comp.filter(c=>!c.ok).forEach(c=>add('importante','Componentes',`—`,`No detectado: ${c.label}.`,'Incluye este elemento o confirma que no aplica.'));
+  comp.filter(c=>!c.ok).forEach(c=>add('importante','Componentes','—',`No detectado: ${c.label}.`,'Incluye este elemento o confirma que no aplica.'));
 
   F.sort((a,b)=>SEV_RANK[a.sev]-SEV_RANK[b.sev]);
   const load = {words:scoped.reduce((a,p)=>a+wc(p.text),0), items:scoped.filter(p=>/\?/.test(p.text)||/^\s*(\[Tabla\]\s*)?\d{1,2}[.)]\s+/.test(p.text)).length};
@@ -996,8 +1000,10 @@ function renderDeterministic(){
 function runChecksAndRender(){ if(!state.doc) return alert('Carga un documento en el paso 2.'); state.det=runDeterministic(); renderDeterministic(); }
 
 /* ================= CONFIGURACIÓN DEL MOTOR ================= */
+/* Modelo predeterminado de Gemini: "gemini-3.8-flash" (el que indicó la API en el error 404).
+   Si tu clave no lo acepta, usa "Listar modelos disponibles" en el diálogo. */
 const API_DEFAULTS = {
-  gemini:{endpoint:'https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent', model:'gemini-2.5-flash', local:false, hint:'Clave de aistudio.google.com'},
+  gemini:{endpoint:'https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent', model:'gemini-3.8-flash', local:false, hint:'Clave de aistudio.google.com'},
   groq:{endpoint:'https://api.groq.com/openai/v1/chat/completions', model:'llama-3.3-70b-versatile', local:false, hint:'Clave de console.groq.com'},
   openrouter:{endpoint:'https://openrouter.ai/api/v1/chat/completions', model:'openrouter/free', local:false, hint:'Clave de openrouter.ai'},
   zai:{endpoint:'https://api.z.ai/api/paas/v4/chat/completions', model:'glm-4.6', local:false, hint:'Clave de z.ai'},
@@ -1007,6 +1013,20 @@ const API_DEFAULTS = {
   openai:{endpoint:'https://api.openai.com/v1/chat/completions', model:'gpt-4o', local:false, hint:'Clave de platform.openai.com'},
   custom:{endpoint:'', model:'', local:false, hint:'Clave de tu proxy o endpoint'}
 };
+
+/* Enlaces oficiales a la lista de modelos de cada proveedor */
+const MODEL_DOCS = {
+  gemini:'https://ai.google.dev/gemini-api/docs/models',
+  groq:'https://console.groq.com/docs/models',
+  openrouter:'https://openrouter.ai/models',
+  zai:'https://docs.z.ai',
+  ollama:'https://ollama.com/library',
+  lmstudio:'https://lmstudio.ai/models',
+  anthropic:'https://docs.claude.com/en/docs/about-claude/models/overview',
+  openai:'https://platform.openai.com/docs/models',
+  custom:''
+};
+
 function readApiCfg(){
   const cfg={provider:$('cfg-provider').value, endpoint:$('cfg-endpoint').value.trim(), model:$('cfg-model').value.trim(), key:$('cfg-key').value.trim()};
   try{ if($('cfg-remember').checked) localStorage.setItem(API_LS, JSON.stringify(cfg)); else localStorage.removeItem(API_LS); }catch(e){}
@@ -1014,49 +1034,114 @@ function readApiCfg(){
 }
 function apiReady(c){ return !!(c.endpoint && c.model && (c.key || API_DEFAULTS[c.provider]?.local || /localhost|127\.0\.0\.1/.test(c.endpoint))); }
 function updateApiBadge(){ const c=readApiCfg(); const b=$('api-badge'); if(apiReady(c)){ b.className='badge ok'; b.textContent='Motor: '+c.provider+' ('+c.model+')'; } else { b.className='badge warn'; b.textContent='Motor sin configurar'; } }
-function applyProvider(p,saved){ const d=API_DEFAULTS[p]||API_DEFAULTS.custom; $('cfg-endpoint').value=(saved&&saved.endpoint)||d.endpoint; $('cfg-model').value=(saved&&saved.model)||d.model; $('cfg-key').value=(saved&&saved.key)||''; $('cfg-key').placeholder=d.hint; }
-function onProviderChange(){ applyProvider($('cfg-provider').value,null); updateApiBadge(); }
-function openApiDialog(reason){ $('api-reason').textContent=reason||''; $('cfg-status').textContent=''; $('api-dialog').showModal(); }
+
+function updateModelHelp(provider){
+  const link=$('model-docs'), btn=$('btn-list-models');
+  const url=MODEL_DOCS[provider]||'';
+  if(url){ link.href=url; link.textContent='Lista oficial de modelos de este proveedor ↗'; link.style.display='inline'; }
+  else { link.removeAttribute('href'); link.textContent=''; link.style.display='none'; }
+  btn.style.display = provider==='gemini' ? 'inline-block' : 'none';
+  $('model-suggestions').innerHTML='';
+}
+function applyProvider(p,saved){
+  const d=API_DEFAULTS[p]||API_DEFAULTS.custom;
+  $('cfg-endpoint').value=(saved&&saved.endpoint)||d.endpoint;
+  $('cfg-model').value=(saved&&saved.model)||d.model;
+  $('cfg-key').value=(saved&&saved.key)||'';
+  $('cfg-key').placeholder=d.hint;
+  updateModelHelp(p);
+}
+function onProviderChange(){ applyProvider($('cfg-provider').value,null); $('cfg-status').textContent=''; updateApiBadge(); }
+function openApiDialog(reason){ $('api-reason').textContent=reason||''; $('cfg-status').textContent=''; updateModelHelp($('cfg-provider').value); $('api-dialog').showModal(); }
 function closeApiDialog(){ readApiCfg(); updateApiBadge(); renderModeNote(); $('api-dialog').close(); }
 function loadApiUI(){
   let s=null; try{ s=JSON.parse(localStorage.getItem(API_LS)||'null'); }catch(e){}
   const p=(s&&API_DEFAULTS[s.provider])?s.provider:'gemini';
   $('cfg-provider').value=p; applyProvider(p,s); updateApiBadge();
 }
+
+function setModel(m){
+  $('cfg-model').value=m;
+  $('cfg-status').textContent='Modelo seleccionado: '+m;
+  updateApiBadge();
+}
+
+/* Mensaje claro para errores HTTP; el 404 indica el modelo y dónde consultar la lista */
+function httpErrorMessage(status, body){
+  const c=readApiCfg();
+  const docs=MODEL_DOCS[c.provider]||'';
+  if(status===404){
+    return `Modelo no disponible (HTTP 404): "${c.model}" no existe o no está habilitado para esta clave. `
+      + (c.provider==='gemini' ? 'Pulsa "Listar modelos disponibles" en ⚙ Motor y elige uno de la lista. ' : 'Elige un modelo de la lista oficial del proveedor. ')
+      + (docs ? 'Lista oficial: '+docs : '');
+  }
+  if(status===401||status===403) return `Clave rechazada (HTTP ${status}). Revisa la API key y que la cuenta tenga acceso al proveedor.`;
+  if(status===400 && /model/i.test(body)) return `Solicitud inválida con el modelo "${c.model}" (HTTP 400): ${String(body).slice(0,160)}`;
+  return `HTTP ${status}: ${String(body||'').slice(0,200)}`;
+}
+
 async function fetchRetry(url,opts,onMsg){
   const waits=[10000,20000,35000];
   for(let a=0;a<=waits.length;a++){
     let r; try{ r=await fetch(url,opts); }catch(e){ throw new Error('Error de red o CORS: '+e.message+' (en Ollama revisa OLLAMA_ORIGINS)'); }
     if(r.status===429 && a<waits.length){ onMsg&&onMsg('Límite de peticiones; esperando '+(waits[a]/1000)+' s…'); await new Promise(res=>setTimeout(res,waits[a])); continue; }
-    if(!r.ok) throw new Error('HTTP '+r.status+': '+(await r.text().catch(()=>'')).slice(0,200));
+    if(!r.ok){
+      const body=await r.text().catch(()=>'');
+      throw new Error(httpErrorMessage(r.status, body));
+    }
     return r;
   }
 }
+
+/* Lista los modelos que acepta la clave de Gemini (usa cabecera, no la URL, para no exponer la clave) */
+async function listGeminiModels(){
+  const st=$('cfg-status'), box=$('model-suggestions');
+  const c=readApiCfg();
+  if(!c.key){ st.textContent='Escribe la API key de Gemini para listar los modelos.'; return; }
+  st.textContent='Consultando modelos…';
+  try{
+    const r=await fetch('https://generativelanguage.googleapis.com/v1beta/models?pageSize=100',{headers:{'x-goog-api-key':c.key}});
+    if(!r.ok){ const body=await r.text().catch(()=>''); throw new Error('HTTP '+r.status+': '+body.slice(0,160)); }
+    const d=await r.json();
+    const models=(d.models||[])
+      .filter(m=>(m.supportedGenerationMethods||[]).includes('generateContent'))
+      .map(m=>(m.name||'').replace(/^models\//,''))
+      .filter(Boolean);
+    if(!models.length){ box.innerHTML='<span class="hint">Tu clave no tiene modelos compatibles con generateContent.</span>'; st.textContent='Sin modelos compatibles.'; return; }
+    box.innerHTML = models.map(m=>`<button class="chip" data-m="${esc(m)}">${esc(m)}</button>`).join('');
+    box.querySelectorAll('button[data-m]').forEach(b=>b.addEventListener('click',()=>setModel(b.dataset.m)));
+    st.textContent = models.length+' modelo(s) disponibles. Haz clic en uno para usarlo.';
+  }catch(e){ st.textContent='✕ '+e.message; }
+}
+
 async function callLLM(system,user,maxTokens=3500,onMsg){
   const c=readApiCfg();
   if(!apiReady(c)) throw new Error('Configura el motor de IA (⚙).');
   const key=c.key||'local';
+  const model=c.model.replace(/^models\//,'');
   if(c.provider==='gemini'){
-    let url=c.endpoint.replace('{model}',encodeURIComponent(c.model));
+    let url=c.endpoint.replace('{model}',encodeURIComponent(model));
     url += (url.includes('?')?'&':'?')+'key='+encodeURIComponent(key);
     const r=await fetchRetry(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({system_instruction:{parts:[{text:system}]},contents:[{role:'user',parts:[{text:user}]}],generationConfig:{temperature:0.2,maxOutputTokens:maxTokens}})},onMsg);
     const d=await r.json(); const t=d.candidates?.[0]?.content?.parts?.map(p=>p.text||'').join('')||'';
-    if(!t) throw new Error('Gemini no devolvió texto.'); return t;
+    if(!t) throw new Error('Gemini no devolvió texto ('+((d.candidates?.[0]?.finishReason)||'vacío')+').'); return t;
   }
   if(c.provider==='anthropic'){
-    const r=await fetchRetry(c.endpoint,{method:'POST',headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:c.model,max_tokens:maxTokens,temperature:0.2,system,messages:[{role:'user',content:user}]})},onMsg);
+    const r=await fetchRetry(c.endpoint,{method:'POST',headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model,max_tokens:maxTokens,temperature:0.2,system,messages:[{role:'user',content:user}]})},onMsg);
     const d=await r.json(); const t=(d.content||[]).map(b=>b.text||'').join('');
     if(!t) throw new Error('Anthropic no devolvió texto.'); return t;
   }
-  const r=await fetchRetry(c.endpoint,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+key},body:JSON.stringify({model:c.model,temperature:0.2,max_tokens:maxTokens,messages:[{role:'system',content:system},{role:'user',content:user}]})},onMsg);
+  const r=await fetchRetry(c.endpoint,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+key},body:JSON.stringify({model,temperature:0.2,max_tokens:maxTokens,messages:[{role:'system',content:system},{role:'user',content:user}]})},onMsg);
   const d=await r.json(); const t=d.choices?.[0]?.message?.content||'';
   if(!t) throw new Error('El proveedor no devolvió texto.'); return t;
 }
+
 async function testConnection(){
   const st=$('cfg-status'); st.textContent='Probando…';
   try{ const r=await callLLM('Responde en una palabra.','Responde exactamente: CONEXION_OK',40); st.textContent='✓ '+r.trim().slice(0,40); updateApiBadge(); }
   catch(e){ st.textContent='✕ '+e.message; }
 }
+
 function parseJsonLoose(raw){
   let s=String(raw||'').trim(); const f=s.match(/```(?:json)?\s*([\s\S]*?)```/i); if(f) s=f[1].trim();
   try{ return JSON.parse(s); }catch(_){ const a=s.indexOf('{'), b=s.lastIndexOf('}'); if(a>=0&&b>a) return JSON.parse(s.slice(a,b+1)); throw new Error('la respuesta no es JSON válido'); }
@@ -1140,7 +1225,7 @@ async function runAIEvaluation(){
   if(!scoped.length) return alert('El alcance no tiene contenido.');
 
   const btn=$('btn-run'); btn.disabled=true;
-  state.chunks=chunkParagraphs(scoped); state.observations=[]; state.synthesis=null;
+  state.chunks=chunkParagraphs(scoped); state.observations=[]; state.synthesis=null; state.chunkSummaries=[];
   $('dictamen-out').innerHTML='';
   const rows=state.chunks.map((c,i)=>({label:`Bloque ${i+1}/${state.chunks.length} (${c.label})`,s:'',d:'En espera'}));
   rows.push({label:'Verificación cruzada de críticas',s:'',d:state.secondPass?'En espera':'Desactivada'});
@@ -1156,7 +1241,7 @@ async function runAIEvaluation(){
       try{
         const raw=await callLLM(sysC,`ARTEFACTO: ${state.doc.name}\nBLOQUE ${i+1}/${state.chunks.length} (${ch.label})\nHALLAZGOS AUTOMÁTICOS PREVIOS:\n${hints||'ninguno'}\n\nCONTENIDO:\n${text}`,3800,m=>{rows[i].d=m;renderProgress(rows);});
         const parsed=parseJsonLoose(raw);
-        if(parsed.chunkSummary) state.chunkSummaries=(state.chunkSummaries||[]).concat(`[${ch.label}] ${parsed.chunkSummary}`);
+        if(parsed.chunkSummary) state.chunkSummaries.push(`[${ch.label}] ${parsed.chunkSummary}`);
         (Array.isArray(parsed.observations)?parsed.observations:[]).forEach(o=>{
           const pid=Number(o.paragraphId);
           const para=Number.isFinite(pid)?state.doc.paragraphs.find(p=>p.id===pid):null;
@@ -1174,11 +1259,9 @@ async function runAIEvaluation(){
       renderProgress(rows);
     }
 
-    // Deduplicar
     const seen=new Set(); state.observations=state.observations.filter(o=>!seen.has(o.fp)&&seen.add(o.fp));
     state.observations.sort((a,b)=>(SEV_RANK[a.severity]-SEV_RANK[b.severity])||((a.paragraphId??99999)-(b.paragraphId??99999)));
 
-    // Segunda pasada
     const vi=state.chunks.length;
     if(state.secondPass){
       const crit=state.observations.filter(o=>o.severity==='critica');
@@ -1194,8 +1277,6 @@ async function runAIEvaluation(){
       rows[vi].s='ok'; rows[vi].d=`${crit.length} crítica(s) revisadas`; renderProgress(rows);
     }
 
-    // Síntesis
-    const si=vi+(state.secondPass?1:0)+1-1+1-1 + 1 - 1; // índice de la fila de síntesis
     const synthIdx=rows.length-1; rows[synthIdx].s='busy'; rows[synthIdx].d='Integrando dictamen…'; renderProgress(rows);
     const digest=state.observations.slice(0,60).map(o=>`- [${o.severity}|${o.dimension}|${o.anchor}] ${o.finding} → ${o.proposal}`).join('\n');
     const sumChunks=(state.chunkSummaries||[]).join('\n');
@@ -1230,8 +1311,8 @@ function filteredObs(){
 }
 function scoreTotals(){
   const s=state.synthesis.scores.filter(c=>!c.isGate);
-  const eval_=s.filter(c=>c.score!=null);
-  return {got:eval_.reduce((a,c)=>a+c.score,0), max:s.reduce((a,c)=>a+c.maxPoints,0), evaluated:eval_.length, total:s.length};
+  const evaluated=s.filter(c=>c.score!=null);
+  return {got:evaluated.reduce((a,c)=>a+c.score,0), max:s.reduce((a,c)=>a+c.maxPoints,0), evaluated:evaluated.length, total:s.length};
 }
 function verifStats(){
   const withQ=state.observations.filter(o=>o.quote);
@@ -1322,7 +1403,7 @@ function renderMatrix(list){
 function renderAnnotated(list){
   const paras=getScopedParagraphs(state.scope);
   const byPara=new Map(), loose=[];
-  list.forEach(o=>{ if(o.paragraphId!=null && paras.some(p=>p.id===o.paragraphId)){ (byPara.get(o.paragraphId)||byPara.set(o.paragraphId,[]).get(o.paragraphId)).push(o); } else loose.push(o); });
+  list.forEach(o=>{ if(o.paragraphId!=null && paras.some(p=>p.id===o.paragraphId)){ if(!byPara.has(o.paragraphId)) byPara.set(o.paragraphId,[]); byPara.get(o.paragraphId).push(o); } else loose.push(o); });
   const body=paras.map(p=>{
     const po=byPara.get(p.id)||[];
     let html=esc(p.text);
@@ -1355,7 +1436,6 @@ function renderDictamen(){
   else if(state.view==='matriz') body=renderMatrix(list);
   else body=renderExecutive()+`<div class="obs-print">${renderAnnotated(list)}</div>`;
   out.innerHTML=head+tabs+body;
-  if(state.view!=='ejecutivo') out.querySelectorAll('.card').forEach(c=>{});
   renderModeNote();
 }
 
@@ -1365,8 +1445,7 @@ function csv(v){ return '"'+String(v==null?'':v).replace(/"/g,'""')+'"'; }
 function exportCSV(){
   if(!state.observations.length) return alert('Genera el dictamen primero.');
   const h=['ID','Severidad','Dimensión','Criterio','Ancla','Cita','Cita verificada','Confirmada por verificador','Hallazgo','Fundamento','Propuesta','Estado','Nota'];
-  const rows=state.observations.map((o,i)=>{ const d=getDecision(o.fp); return [ 'OBS-'+(i+1), SEV_LABEL[o.severity], o.dimension, o.criterionId, o.anchor, o.quote, o.verified==null?'sin cita':(o.verified?'sí':'no'), o.confirmed==null?'no revisada':(o.confirmed?'sí':'no'), o.finding, o.rationale, o.proposal, d.status, d.note ]; });
-  rows.forEach((r,i)=>{ state.observations[i].id='OBS-'+(i+1); });
+  const rows=state.observations.map((o,i)=>{ o.id='OBS-'+(i+1); const d=getDecision(o.fp); return [ o.id, SEV_LABEL[o.severity], o.dimension, o.criterionId, o.anchor, o.quote, o.verified==null?'sin cita':(o.verified?'sí':'no'), o.confirmed==null?'no revisada':(o.confirmed?'sí':'no'), o.finding, o.rationale, o.proposal, d.status, d.note ]; });
   download(new Blob(['\ufeff'+[h,...rows].map(r=>r.map(csv).join(',')).join('\r\n')],{type:'text/csv;charset=utf-8'}), baseName()+'.csv');
 }
 function exportJSON(){
