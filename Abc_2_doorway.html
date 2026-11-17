@@ -55,6 +55,7 @@ th{color:var(--ink-muted);font-weight:500;font-size:12px;}
 .badge{display:inline-block;font-size:11px;padding:2px 8px;border-radius:20px;border:1px solid var(--border-strong);color:var(--ink-muted);}
 .badge.ok{background:var(--ok-bg);border-color:var(--ok);color:var(--ok);}
 .badge.warn{background:var(--sev-importante-bg);border-color:var(--sev-importante);color:var(--sev-importante);}
+.badge.bad{background:var(--sev-critica-bg);border-color:var(--sev-critica);color:var(--sev-critica);}
 .badge.scope{background:var(--sev-sugerencia-bg);border-color:var(--sev-sugerencia);color:var(--sev-sugerencia);}
 .dropzone{border:1px dashed var(--border-strong);border-radius:var(--radius);padding:34px 20px;text-align:center;color:var(--ink-muted);background:var(--surface);}
 .dropzone.drag{border-color:var(--accent);color:var(--accent);}
@@ -115,7 +116,6 @@ details.help table{font-size:12px;}
 .sev-pill.sugerencia{background:var(--sev-sugerencia-bg);color:var(--sev-sugerencia);}
 .quote-mini{font-family:var(--font-serif);font-style:italic;color:var(--ink-muted);font-size:12px;margin-top:4px;border-left:2px solid var(--border);padding-left:7px;}
 .print-header{display:none;margin-bottom:14px;border-bottom:1px solid var(--border-strong);padding-bottom:8px;}
-.badge.bad{background:var(--sev-critica-bg);border-color:var(--sev-critica);color:var(--sev-critica);}
 @page{
   size:letter;margin:22mm 20mm;
   @top-center{content:"Dictamen de revisión doctoral por Dr. J. Adrián Cerda";font-size:8.5pt;color:#5B6B79;}
@@ -399,6 +399,7 @@ if (window.pdfjsLib) { pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.c
 const state = {
   rubric: { title:'', instructedPages:{min:null,max:null}, criteria:[] },
   doc: null,
+  docNorm: '',
   studentName: '',
   scope: { mode:'all', fromIdx:0, toIdx:0, selectedHeadingIdxs:new Set(), includePrelim:false },
   deterministic: null,
@@ -412,6 +413,16 @@ const state = {
 
 function escapeHtml(s){
   return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+/* ============================================================
+   NORMALIZACIÓN DE TEXTO (usada en verificación de citas y carga)
+   ============================================================ */
+function normalizeForMatch(s){
+  return String(s||'').toLowerCase().replace(/[“”«»]/g,'"').replace(/\s+/g,' ').trim();
+}
+function normText(s){
+  return normalizeForMatch(s).replace(/\[tabla[^\]]*\]\s*/gi,'');
 }
 
 /* ============================================================
@@ -584,8 +595,10 @@ function renderRubric(){
 }
 
 function exportRubricJSON(){
-  const blob = new Blob([JSON.stringify(state.rubric,null,2)], {type:'application/json'});
-  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'rubrica.json'; a.click();
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([JSON.stringify(state.rubric,null,2)], {type:'application/json'}));
+  a.download = 'rubrica.json';
+  a.click();
 }
 function importRubricJSON(file){
   if(!file) return;
@@ -729,7 +742,6 @@ async function handleFileUpload(file){
   }
 }
 
-/* PARCHE 2: tablas conservadas, sin duplicados de <li> con <p> */
 async function parseDocx(file, plainOnly){
   if(typeof mammoth==='undefined') throw new Error('No se pudo cargar mammoth.js.');
   const arrayBuffer = await file.arrayBuffer();
@@ -739,6 +751,7 @@ async function parseDocx(file, plainOnly){
   const paras = [];
   div.querySelectorAll('h1,h2,h3,h4,h5,h6,p,li,tr').forEach(el=>{
     if(el.tagName==='TR'){
+      if(plainOnly===false) return;
       const cells = [...el.children].map(td=>td.textContent.replace(/\s+/g,' ').trim()).filter(Boolean);
       if(cells.length) paras.push({text:'[Tabla] '+cells.join(' | '), isTableRow:true});
       return;
@@ -784,7 +797,6 @@ function romanToInt(s){
   return total||null;
 }
 
-/* PARCHE 3: encabezados más estrictos */
 function detectHeadingsAndParagraphs(rawParas){
   const headingRe = /^(\d{1,2}(?:\.\d{1,2}){0,5})[.)]?\s+([A-ZÁÉÍÓÚÑ][^.;!?]{1,120})$/;
   const chapterRe = /^CAP[IÍ]TULO\s+(\d{1,2}|[IVXLCDM]+)\b[.:—\-\s]*(.{0,140})$/i;
@@ -1023,7 +1035,6 @@ function updateScopePreview(){
     `<strong>Vista previa del alcance:</strong> ${escapeHtml(formatScopeLabel(draft))} — <b>${paras.length}</b> párrafos · <b>${words.toLocaleString('es')}</b> palabras (≈${Math.max(1,Math.round(words/350))} pp.) · <b>${chunksCount}</b> fragmento(s) para la IA.`;
 }
 
-/* PARCHE 6: al cambiar el alcance se invalidan las verificaciones previas */
 function saveScopeDialog(){
   const draft = getDialogScopeDraft();
   if(!getScopedParagraphs(draft).length){
@@ -1060,7 +1071,6 @@ function runDeterministicChecks(){
   renderDeterministicResults();
 }
 
-/* PARCHE 10: portada (heurística sobre las primeras líneas) */
 function checkCover(paragraphs){
   const front = paragraphs.slice(0,25).map(p=>p.text).join(' ').toLowerCase();
   const keys = ['universidad','curso','asignatura','tutor','estudiante','fecha'];
@@ -1259,7 +1269,6 @@ function loadApiConfigUI(){
   const provider = (saved && API_DEFAULTS[saved.provider]) ? saved.provider : 'gemini';
   document.getElementById('cfg-provider').value = provider;
   applyProviderUI(provider, saved);
-  /* PARCHE 8: la clave no se guarda por defecto */
   document.getElementById('cfg-remember').checked = !!saved;
   updateApiBadge();
 }
@@ -1303,7 +1312,6 @@ async function fetchWithRetry(url, options, onRetryMsg){
   }
 }
 
-/* PARCHE 7: modo JSON nativo cuando el proveedor lo soporta; razonamiento desactivado en Gemini 2.5 */
 async function callLLM(systemPrompt, userText, maxTokens, onRetryMsg, jsonMode){
   const cfg = readApiConfigInputs();
   updateApiBadge();
@@ -1469,7 +1477,6 @@ Instrucciones por campo:
 - "mejora": orientación académica fundamentada, máximo 30 palabras.
 - "accion": instrucción operativa concreta (qué reescribir, añadir, eliminar o reestructurar), máximo 30 palabras.`;
 
-/* PARCHE 5: bandas con puntos de corte en el mensaje al modelo */
 function rubricCriteriaText(){
   return state.rubric.criteria.map(c=>
     `- ${c.name} (máx ${c.maxPoints}): ` + c.bands.map(b=>`${b.min!=null?b.min+' pts':'—'}: ${b.desc}`).join(' | ')
@@ -1495,11 +1502,6 @@ function buildChunkUserMessage(chunk){
 
 function paragraphAnchor(p){
   return '¶'+p.id + (p.estPage!=null ? ' · p.'+p.estPage : '');
-}
-
-/* PARCHE 1: verificación de citas contra el texto original */
-function normalizeForMatch(s){
-  return String(s||'').toLowerCase().replace(/[“”«»]/g,'"').replace(/\s+/g,' ').trim();
 }
 
 function matchExcerptToParagraph(o){
@@ -1570,7 +1572,6 @@ async function runAIEvaluation(){
     alert('El alcance seleccionado está vacío. Elige capítulos o secciones con contenido.');
     return;
   }
-  /* PARCHE 6: se recalculan las verificaciones si no están vigentes */
   if(!state.deterministic) runDeterministicChecks();
 
   const btn = document.getElementById('btn-run-ai');
@@ -1600,7 +1601,6 @@ async function runAIEvaluation(){
   }
 }
 
-/* PARCHE 4: el modelo no calcula el total; se reconcilia en código */
 const SYSTEM_PROMPT_SYNTHESIS = `Eres investigador titular y director de tesis doctoral en Ciencias de la Educación que firma el dictamen. A partir de los resúmenes por sección, el alcance, la rúbrica con sus bandas y los hallazgos deterministas, redacta un dictamen ejecutivo riguroso y constructivo.
 
 Regla para revisiones parciales:
@@ -1698,7 +1698,7 @@ function renderSynthesisCard(){
   }
   if(!state.synthesis) return '';
   const s = state.synthesis;
-  const c = s => state.observations.filter(o=>o.severidad===s).length;
+  const c = sev => state.observations.filter(o=>o.severidad===sev).length;
   const scoreBlock = s.totalEstimado!=null
     ? `<div class="score-total">${s.totalEstimado} <span style="font-size:13px;color:var(--ink-muted);font-family:var(--font-sans);">/ ${s.maxTotal} pts.</span></div>`
     : `<span class="badge scope">Puntaje total no calculado (revisión parcial o criterios no verificables)</span>`;
