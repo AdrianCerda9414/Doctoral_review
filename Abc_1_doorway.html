@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Dictamen doctoral — herramienta de revisión con rúbrica</title>
+<title>Dictamen de revisión doctoral por Dr. J. Adrián Cerda</title>
 <style>
 :root{
   --bg:#F6F5F1;
@@ -32,7 +32,7 @@ h1{font-size:22px;} h2{font-size:19px;} h3{font-size:16px;}
 p{margin:.4em 0;}
 header.top{padding:20px 28px;border-bottom:1px solid var(--border);background:var(--surface);}
 header.top .kicker{font-size:12px;color:var(--ink-muted);letter-spacing:.02em;margin-bottom:2px;}
-.app{display:flex;max-width:1180px;margin:0 auto;gap:0;}
+.app{display:flex;max-width:1220px;margin:0 auto;gap:0;}
 nav.stepper{width:190px;flex:0 0 190px;padding:28px 16px;border-right:1px solid var(--border);}
 nav.stepper ol{list-style:none;margin:0;padding:0;position:relative;}
 nav.stepper li{display:flex;gap:10px;align-items:flex-start;padding:0 0 26px 0;position:relative;cursor:pointer;}
@@ -66,6 +66,7 @@ th{color:var(--ink-muted);font-weight:500;font-size:12px;}
 .badge{display:inline-block;font-size:11px;padding:2px 8px;border-radius:20px;border:1px solid var(--border-strong);color:var(--ink-muted);}
 .badge.ok{background:var(--ok-bg);border-color:var(--ok);color:var(--ok);}
 .badge.warn{background:var(--sev-importante-bg);border-color:var(--sev-importante);color:var(--sev-importante);}
+.badge.scope{background:var(--sev-sugerencia-bg);border-color:var(--sev-sugerencia);color:var(--sev-sugerencia);}
 .dropzone{border:1px dashed var(--border-strong);border-radius:var(--radius);padding:34px 20px;text-align:center;color:var(--ink-muted);background:var(--surface);}
 .dropzone.drag{border-color:var(--accent);color:var(--accent);}
 .ref{font-family:var(--font-mono);font-size:12px;color:var(--ink-muted);}
@@ -95,17 +96,88 @@ mark.sugerencia{background:var(--sev-sugerencia-bg);color:var(--ink);}
 .doc-paragraph{font-size:13.5px;margin:8px 0;color:var(--ink);}
 .doc-heading{font-family:var(--font-serif);font-size:15px;margin:18px 0 4px;color:var(--ink);}
 .info-box{background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius);padding:10px 14px;font-size:12.5px;color:var(--ink-muted);margin-bottom:16px;}
-.filters{display:flex;gap:14px;align-items:center;margin:10px 0;font-size:13px;}
+.filters{display:flex;gap:14px;align-items:center;margin:10px 0;font-size:13px;flex-wrap:wrap;}
 .filters label{display:flex;gap:5px;align-items:center;color:var(--ink);font-size:13px;}
 .score-total{font-family:var(--font-serif);font-size:28px;}
 .config-row{display:flex;gap:14px;flex-wrap:wrap;}
 .config-row .field{flex:1;min-width:170px;}
-dialog#api-config-dialog{border:1px solid var(--border-strong);border-radius:var(--radius);padding:18px 22px;width:min(680px,92vw);background:var(--surface);color:var(--ink);}
-dialog#api-config-dialog::backdrop{background:rgba(31,41,51,.38);}
-dialog#api-config-dialog select{width:100%;}
+
+/* Diálogos */
+dialog{border:1px solid var(--border-strong);border-radius:var(--radius);padding:18px 22px;width:min(720px,94vw);background:var(--surface);color:var(--ink);}
+dialog::backdrop{background:rgba(31,41,51,.38);}
+dialog select{width:100%;}
 details.help{margin:8px 0;font-size:12.5px;}
 details.help summary{cursor:pointer;color:var(--ink-muted);}
 details.help table{font-size:12px;}
+
+/* Alcance */
+.scope-bar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius);padding:10px 14px;margin:12px 0;}
+.scope-mode-box{border:1px solid var(--border);border-radius:var(--radius);padding:10px 12px;margin:8px 0;background:var(--bg);}
+.scope-mode-box label.radio-title{display:flex;gap:8px;align-items:center;font-size:13.5px;font-weight:500;color:var(--ink);cursor:pointer;margin-bottom:6px;}
+.scope-tree{max-height:240px;overflow-y:auto;border:1px solid var(--border);border-radius:var(--radius);background:var(--surface);padding:6px 10px;margin-top:8px;}
+.scope-item{display:flex;gap:8px;align-items:center;padding:3px 0;font-size:13px;color:var(--ink);margin:0;}
+.scope-item input{margin:0;}
+
+/* Pestañas de dictamen y tabla operativa */
+.view-tabs{display:flex;gap:6px;flex-wrap:wrap;margin:14px 0 10px;border-bottom:1px solid var(--border);padding-bottom:10px;}
+.view-tabs button.active{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);}
+.action-table{width:100%;border-collapse:collapse;font-size:12.5px;margin-top:8px;}
+.action-table th{background:var(--surface-2);border-bottom:1px solid var(--border-strong);padding:8px;}
+.action-table td{padding:9px 8px;border-bottom:1px solid var(--border);vertical-align:top;}
+.action-table tr{break-inside:avoid;}
+.sev-pill{display:inline-block;font-size:10.5px;font-weight:600;text-transform:uppercase;padding:2px 7px;border-radius:12px;letter-spacing:.03em;}
+.sev-pill.critica{background:var(--sev-critica-bg);color:var(--sev-critica);}
+.sev-pill.importante{background:var(--sev-importante-bg);color:var(--sev-importante);}
+.sev-pill.sugerencia{background:var(--sev-sugerencia-bg);color:var(--sev-sugerencia);}
+.quote-mini{font-family:var(--font-serif);font-style:italic;color:var(--ink-muted);font-size:12px;margin-top:4px;border-left:2px solid var(--border);padding-left:7px;}
+.print-header{display:none;margin-bottom:14px;border-bottom:1px solid var(--border-strong);padding-bottom:8px;}
+
+/* Reglas de página para PDF / Impresión:
+   - Oculta fecha/hora, URL y título predeterminado del navegador mediante margin boxes.
+   - Primeras páginas en números romanos (i, ii...).
+   - Sección de observaciones inicia en página nueva con números arábigos (1, 2, 3...). */
+@page {
+  size: letter;
+  margin: 22mm 20mm 22mm 20mm;
+  @top-left { content: ""; }
+  @top-right { content: ""; }
+  @top-center {
+    content: "Dictamen de revisión doctoral por Dr. J. Adrián Cerda";
+    font-size: 8.5pt;
+    color: #5B6B79;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  }
+  @bottom-left { content: ""; }
+  @bottom-center { content: ""; }
+  @bottom-right {
+    content: counter(page, lower-roman);
+    font-size: 9pt;
+    color: #5B6B79;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  }
+}
+
+@page observaciones {
+  size: letter;
+  margin: 22mm 20mm 22mm 20mm;
+  @top-left { content: ""; }
+  @top-right { content: ""; }
+  @top-center {
+    content: "Dictamen de revisión doctoral por Dr. J. Adrián Cerda";
+    font-size: 8.5pt;
+    color: #5B6B79;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  }
+  @bottom-left { content: ""; }
+  @bottom-center { content: ""; }
+  @bottom-right {
+    content: counter(page, decimal);
+    font-size: 9pt;
+    color: #5B6B79;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  }
+}
+
 @media (max-width:820px){
   .app{flex-direction:column;}
   nav.stepper{width:auto;flex:none;border-right:none;border-bottom:1px solid var(--border);padding:14px 16px;}
@@ -115,10 +187,24 @@ details.help table{font-size:12px;}
   nav.stepper .label{display:none;}
 }
 @media print{
-  nav.stepper,.toolbar,header.top .kicker,button,.no-print,#ai-progress,.filters,dialog{display:none !important;}
+  body{background:#FFFFFF;}
+  header.top,nav.stepper,.toolbar,button,.no-print,#ai-progress,.filters,dialog,.view-tabs,.scope-bar{display:none !important;}
   main{padding:0;}
-  section.panel{display:block !important;}
+  section.panel{display:none !important;}
+  section.panel#panel-4{display:block !important;}
+  .print-header{display:block !important;}
   .app{display:block;max-width:none;}
+  .card{border-color:#DAD7CE;box-shadow:none;}
+  .obs-section-print{
+    page: observaciones;
+    break-before: page;
+    page-break-before: always;
+    counter-reset: page;
+  }
+  .obs-section-direct{
+    page: observaciones;
+    counter-reset: page;
+  }
 }
 </style>
 </head>
@@ -126,10 +212,11 @@ details.help table{font-size:12px;}
 
 <header class="top">
   <div class="kicker">Herramienta de apoyo a la dirección doctoral</div>
-  <h1>Dictamen con rúbrica — Ciencias de la Educación</h1>
+  <h1>Dictamen de revisión doctoral por Dr. J. Adrián Cerda</h1>
   <div class="toolbar" style="margin:10px 0 0;">
     <button class="small" onclick="openApiDialog()">⚙ Motor de IA</button>
-    <span id="api-status-badge" class="badge warn">Sin configurar (requiere API gratuita o local)</span>
+    <span id="api-status-badge" class="badge warn">Sin configurar</span>
+    <span id="header-scope-badge" class="badge scope" style="display:none;"></span>
   </div>
 </header>
 
@@ -187,7 +274,7 @@ details.help table{font-size:12px;}
     <!-- PANEL 2: DOCUMENTO -->
     <section class="panel" id="panel-2">
       <h2>2. Documento a revisar</h2>
-      <p class="muted">Acepta .docx y .pdf. La extracción de estructura (encabezados numerados, referencias) es heurística — revisa la vista previa antes de continuar. No realiza OCR: los PDF escaneados no funcionan.</p>
+      <p class="muted">Acepta .docx y .pdf. Si la tesis aún está en construcción (plantilla con capítulos vacíos), después de cargarla podrás indicar qué capítulo(s) o rango de secciones deseas revisar.</p>
 
       <div class="dropzone" id="dropzone">
         <div id="dropzone-text">Arrastra el archivo aquí o
@@ -208,7 +295,8 @@ details.help table{font-size:12px;}
     <!-- PANEL 3: VERIFICACIÓN DETERMINISTA -->
     <section class="panel" id="panel-3">
       <h2>3. Verificaciones deterministas</h2>
-      <div class="info-box">Estas verificaciones se calculan con reglas de texto (expresiones regulares), no con IA ni conexión a internet. Son <strong>candidatos a revisar</strong>, no errores confirmados.</div>
+      <div class="info-box">Estas verificaciones se calculan con reglas de texto (sin IA). Cuando seleccionas un alcance parcial (ej. solo Capítulo 1), se evalúan solo las secciones elegidas para no reportar falsos avisos sobre capítulos de la plantilla que aún están vacíos.</div>
+      <div class="scope-bar" id="step3-scope-bar"></div>
       <div class="toolbar">
         <button class="primary" onclick="runDeterministicChecks()">Ejecutar verificaciones</button>
       </div>
@@ -221,25 +309,32 @@ details.help table{font-size:12px;}
 
     <!-- PANEL 4: DICTAMEN -->
     <section class="panel" id="panel-4">
-      <h2>4. Evaluación con IA y dictamen</h2>
-      <div class="info-box" id="ai-mode-note"></div>
+      <div class="no-print">
+        <h2>4. Evaluación con IA y dictamen</h2>
+        <div class="info-box" id="ai-mode-note"></div>
 
-      <div class="card">
-        <h3>Motor de IA</h3>
-        <p class="muted">La evaluación del documento y la conversión de rúbricas usan el motor configurado (gratuito con cuenta como Groq, Google AI Studio o OpenRouter, o local sin internet con Ollama).</p>
-        <div class="toolbar" style="margin:0;">
-          <button onclick="openApiDialog()">Abrir configuración del motor de IA</button>
+        <div class="scope-bar" id="step4-scope-bar"></div>
+
+        <div class="scope-bar" style="background:var(--surface);">
+          <label for="student-name-step4" style="margin:0;font-weight:500;color:var(--ink);">Nombre del alumno:</label>
+          <input type="text" id="student-name-step4" placeholder="Ej. María Fernanda López" style="flex:1;min-width:210px;" oninput="setStudentName(this.value)">
+          <span class="hint" id="filename-preview" style="margin:0;"></span>
+        </div>
+
+        <div class="toolbar">
+          <button class="primary" id="btn-run-ai" onclick="runAIEvaluation()">Generar dictamen con IA</button>
+          <button onclick="openScopeDialog()">🎯 Elegir capítulos / secciones</button>
+          <button onclick="openApiDialog()">⚙ Motor de IA</button>
+          <button onclick="printDictamen()">🖨 Imprimir / PDF</button>
+          <button onclick="exportTableCSV()">📥 Exportar tabla (CSV/Excel)</button>
+          <button onclick="exportDictamenJSON()">Exportar JSON</button>
         </div>
       </div>
 
-      <div class="toolbar">
-        <button class="primary" id="btn-run-ai" onclick="runAIEvaluation()">Generar dictamen con IA</button>
-        <button onclick="window.print()">Imprimir / Exportar PDF</button>
-        <button onclick="exportDictamenJSON()">Exportar dictamen (JSON)</button>
-      </div>
       <div id="ai-progress"></div>
       <div id="dictamen-output"></div>
-      <div class="toolbar">
+
+      <div class="toolbar no-print">
         <button onclick="goToStep(3)">← Verificación</button>
       </div>
     </section>
@@ -247,16 +342,74 @@ details.help table{font-size:12px;}
   </main>
 </div>
 
+<!-- DIÁLOGO DE ALCANCE (CAPÍTULOS / SECCIONES / RANGOS) -->
+<dialog id="scope-dialog">
+  <h3>🎯 Alcance de la revisión (capítulos y secciones)</h3>
+  <p class="muted">Indica qué parte del manuscrito deseas evaluar. Las secciones fuera del alcance no se enviarán a la IA ni serán penalizadas por estar en blanco o incompletas.</p>
+
+  <div class="scope-mode-box">
+    <label class="radio-title">
+      <input type="radio" name="scope-mode" value="all" onchange="onScopeModeChange('all')">
+      Todo el documento completo
+    </label>
+  </div>
+
+  <div class="scope-mode-box">
+    <label class="radio-title">
+      <input type="radio" name="scope-mode" value="range" onchange="onScopeModeChange('range')">
+      Rango continuo de secciones (ej. de la 3.2 a la 3.5)
+    </label>
+    <div class="config-row" id="scope-range-controls">
+      <div class="field">
+        <label for="scope-from">Desde la sección</label>
+        <select id="scope-from" onchange="updateScopePreview()"></select>
+      </div>
+      <div class="field">
+        <label for="scope-to">Hasta la sección (inclusive con sus subsecciones)</label>
+        <select id="scope-to" onchange="updateScopePreview()"></select>
+      </div>
+    </div>
+  </div>
+
+  <div class="scope-mode-box">
+    <label class="radio-title">
+      <input type="radio" name="scope-mode" value="custom" onchange="onScopeModeChange('custom')">
+      Selección específica de capítulos o secciones
+    </label>
+    <div id="scope-custom-controls">
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+        <input type="text" id="scope-text-input" placeholder="Atajo ej.: 1, 3.2-3.5" style="flex:1;min-width:180px;">
+        <button class="small" type="button" onclick="applyScopeText()">Marcar según texto</button>
+        <button class="small" type="button" onclick="toggleAllScopeCheckboxes(true)">Marcar todo</button>
+        <button class="small" type="button" onclick="toggleAllScopeCheckboxes(false)">Limpiar</button>
+      </div>
+      <div class="hint" id="scope-text-msg"></div>
+      <label class="scope-item" style="margin-top:6px;">
+        <input type="checkbox" id="scope-include-prelim" onchange="updateScopePreview()">
+        <span>Incluir preliminares / portada (texto anterior al primer encabezado numerado)</span>
+      </label>
+      <div class="scope-tree" id="scope-tree"></div>
+    </div>
+  </div>
+
+  <div class="info-box" id="scope-live-summary" style="margin-top:10px;margin-bottom:10px;"></div>
+
+  <div class="toolbar" style="margin:0;justify-content:flex-end;">
+    <button onclick="document.getElementById('scope-dialog').close()">Cancelar</button>
+    <button class="primary" onclick="saveScopeDialog()">Aplicar alcance</button>
+  </div>
+</dialog>
+
 <!-- DIÁLOGO DE CONFIGURACIÓN DEL MOTOR DE IA -->
 <dialog id="api-config-dialog">
-  <h3>Configuración del motor de IA (opciones gratuitas disponibles)</h3>
+  <h3>Configuración del motor de IA</h3>
   <p class="hint" id="api-dialog-reason"></p>
   <div class="config-row">
     <div class="field">
       <label for="cfg-provider">Proveedor</label>
       <select id="cfg-provider" onchange="onProviderChange()">
         <optgroup label="Gratuitos (creando cuenta, sin tarjeta)">
-          <option value="groq">Groq (Llama 3.3 70B) — muy rápido y directo</option>
+          <option value="groq">Groq (Llama 3.3 70B)</option>
           <option value="gemini">Google AI Studio (Gemini 3.5 Flash-Lite)</option>
           <option value="openrouter">OpenRouter (enrutador :free)</option>
           <option value="zai">GLM (Z.ai)</option>
@@ -295,17 +448,15 @@ details.help table{font-size:12px;}
     <button onclick="closeApiDialog()">Guardar y cerrar</button>
     <span class="hint" id="cfg-status"></span>
   </div>
-  <details class="help" open>
-    <summary>¿Cómo consigo una clave gratuita en 2 minutos? / ¿Cómo uso Ollama?</summary>
+  <details class="help">
+    <summary>¿Cómo consigo una clave gratuita? / ¿Cómo uso Ollama?</summary>
     <table>
       <tr><th>Proveedor</th><th>Cómo empezar gratis</th></tr>
-      <tr><td>Groq (Recomendado)</td><td>Entra a <span class="ref">console.groq.com</span> con tu correo Google/GitHub → <b>API Keys → Create API Key</b>. Pégala arriba.</td></tr>
-      <tr><td>Google AI Studio</td><td>Entra a <span class="ref">aistudio.google.com</span> con tu cuenta Google → <b>Get API key</b>. Si el modelo <span class="ref">gemini-3.5-flash-lite</span> da error en tu región, prueba <span class="ref">gemini-2.5-flash</span> o <span class="ref">gemini-3.8-flash</span>.</td></tr>
-      <tr><td>OpenRouter</td><td>Cuenta en <span class="ref">openrouter.ai</span> → <b>Keys</b>. El modelo <span class="ref">openrouter/free</span> elige automáticamente un modelo gratuito disponible (hasta 50 req/día sin tarjeta).</td></tr>
-      <tr><td>Ollama (sin internet)</td><td>Instala desde <span class="ref">ollama.com</span>, luego en terminal: <span class="ref">ollama pull qwen2.5:7b</span>. Si da error 403 al probar, arráncalo en Windows con <span class="ref">set OLLAMA_ORIGINS=* && ollama serve</span> (macOS: <span class="ref">launchctl setenv OLLAMA_ORIGINS "*"</span>). No necesita API key.</td></tr>
-      <tr><td>LM Studio (sin internet)</td><td>Descarga un modelo, ve a <b>Developer / Local Server → Start</b> y activa <b>Enable CORS</b>. Escribe el ID del modelo arriba. No necesita API key.</td></tr>
+      <tr><td>Google AI Studio</td><td>Entra a <span class="ref">aistudio.google.com</span> → <b>Get API key</b>. Si <span class="ref">gemini-3.5-flash-lite</span> da error, prueba <span class="ref">gemini-2.5-flash</span>.</td></tr>
+      <tr><td>Groq</td><td>Entra a <span class="ref">console.groq.com</span> → <b>API Keys → Create API Key</b>.</td></tr>
+      <tr><td>OpenRouter</td><td>Cuenta en <span class="ref">openrouter.ai</span> → <b>Keys</b>. El modelo <span class="ref">openrouter/free</span> elige uno gratuito disponible.</td></tr>
+      <tr><td>Ollama (sin internet)</td><td>Instala <span class="ref">ollama.com</span> y ejecuta <span class="ref">ollama pull qwen2.5:7b</span>. Windows CORS: <span class="ref">set OLLAMA_ORIGINS=* && ollama serve</span>.</td></tr>
     </table>
-    <p class="hint">Si abres este HTML directamente como archivo local (<span class="ref">file://</span>) y algún proveedor da error de red/CORS, sirve la carpeta en terminal con <span class="ref">python -m http.server 8080</span> y abre <span class="ref">http://localhost:8080/dictamen.html</span>.</p>
   </details>
 </dialog>
 
@@ -326,16 +477,84 @@ if (window.pdfjsLib) {
 const state = {
   rubric: { title:'', instructedPages:{min:null,max:null}, criteria:[] },
   doc: null,
+  studentName: '',
+  scope: { mode:'all', fromIdx:0, toIdx:0, selectedHeadingIdxs:new Set(), includePrelim:false },
   deterministic: null,
   chunks: [],
   chunkSummaries: [],
   observations: [],
   synthesis: null,
+  dictamenView: 'ejecutivo',
   step: 1
 };
 
 function escapeHtml(s){
   return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+/* ============================================================
+   NOMBRE DEL ALUMNO Y NOMENCLATURA DE ARCHIVOS DESCARGABLES
+   "Revisión Mes día Año Hora de descarga Nombre del alumno"
+   ============================================================ */
+function sanitizeFileNamePart(s){
+  return String(s||'')
+    .replace(/[\\/:*?"<>|]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function buildRevisionBaseName(){
+  const now = new Date();
+  const months = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+  const mes = months[now.getMonth()];
+  const dia = String(now.getDate()).padStart(2,'0');
+  const anio = now.getFullYear();
+  const hh = String(now.getHours()).padStart(2,'0');
+  const mm = String(now.getMinutes()).padStart(2,'0');
+  const hora = `${hh}-${mm}`;
+
+  let alumno = sanitizeFileNamePart(state.studentName);
+  if(!alumno){
+    alumno = state.doc ? sanitizeFileNamePart(state.doc.name.replace(/\.(docx|pdf)$/i,'')) : 'Alumno';
+  }
+  return sanitizeFileNamePart(`Revisión ${mes} ${dia} ${anio} ${hora} ${alumno}`);
+}
+
+function updateFilenamePreview(){
+  const el = document.getElementById('filename-preview');
+  if(el) el.textContent = 'Archivo: "' + buildRevisionBaseName() + '.*"';
+}
+
+function setStudentName(val){
+  state.studentName = val;
+  const s2 = document.getElementById('student-name-step2');
+  const s4 = document.getElementById('student-name-step4');
+  if(s2 && s2.value !== val) s2.value = val;
+  if(s4 && s4.value !== val) s4.value = val;
+  updateFilenamePreview();
+}
+
+function detectStudentNameFromDoc(paragraphs){
+  const head = paragraphs.slice(0, 45);
+  for(const p of head){
+    const m = p.text.match(/(?:presenta|alumn[oa](?:\(a\))?|estudiante|doctorand[oa]|sustentante|autor(?:a)?)\s*[:\-–]\s*(.+)/i);
+    if(m && m[1]){
+      const candidate = m[1].replace(/\s{2,}.*$/,'').trim();
+      if(candidate.length >= 4 && candidate.length <= 80) return candidate;
+    }
+  }
+  return '';
+}
+
+function printDictamen(){
+  const prevTitle = document.title;
+  document.title = buildRevisionBaseName();
+  const restore = ()=>{
+    document.title = prevTitle;
+    window.removeEventListener('afterprint', restore);
+  };
+  window.addEventListener('afterprint', restore);
+  window.print();
 }
 
 /* ============================================================
@@ -350,7 +569,8 @@ function goToStep(n){
     li.classList.toggle('active', s===n);
     li.classList.toggle('done', s<n);
   });
-  if(n===4) renderAiModeNote();
+  if(n===3) renderScopeBars();
+  if(n===4){ renderScopeBars(); renderAiModeNote(); updateFilenamePreview(); }
 }
 document.querySelectorAll('#stepper-list li').forEach(li=>{
   li.addEventListener('click', ()=>goToStep(Number(li.dataset.step)));
@@ -411,39 +631,13 @@ const DEFAULT_RUBRIC = {
   ]
 };
 
-function loadDefaultRubric(){
-  state.rubric = JSON.parse(JSON.stringify(DEFAULT_RUBRIC));
-  renderRubric();
-}
-function addCriterio(){
-  const id = 'crit_'+Date.now();
-  state.rubric.criteria.push({id, name:'Nuevo criterio', isGate:false, maxPoints:10, bands:[{min:10,desc:'Descripción de la banda máxima'}]});
-  renderRubric();
-}
-function removeCriterio(id){
-  state.rubric.criteria = state.rubric.criteria.filter(c=>c.id!==id);
-  renderRubric();
-}
-function addBanda(critId){
-  const c = state.rubric.criteria.find(c=>c.id===critId);
-  c.bands.push({min:0,desc:''});
-  renderRubric();
-}
-function removeBanda(critId, idx){
-  const c = state.rubric.criteria.find(c=>c.id===critId);
-  c.bands.splice(idx,1);
-  renderRubric();
-}
-function updateCriterio(id, field, value){
-  const c = state.rubric.criteria.find(c=>c.id===id);
-  if(field==='maxPoints') c[field]=Number(value)||0;
-  else c[field]=value;
-}
-function updateBanda(critId, idx, field, value){
-  const c = state.rubric.criteria.find(c=>c.id===critId);
-  if(field==='min') c.bands[idx].min = value===''?null:Number(value);
-  else c.bands[idx].desc = value;
-}
+function loadDefaultRubric(){ state.rubric = JSON.parse(JSON.stringify(DEFAULT_RUBRIC)); renderRubric(); }
+function addCriterio(){ state.rubric.criteria.push({id:'crit_'+Date.now(), name:'Nuevo criterio', isGate:false, maxPoints:10, bands:[{min:10,desc:'Descripción de la banda máxima'}]}); renderRubric(); }
+function removeCriterio(id){ state.rubric.criteria = state.rubric.criteria.filter(c=>c.id!==id); renderRubric(); }
+function addBanda(critId){ state.rubric.criteria.find(c=>c.id===critId).bands.push({min:0,desc:''}); renderRubric(); }
+function removeBanda(critId, idx){ state.rubric.criteria.find(c=>c.id===critId).bands.splice(idx,1); renderRubric(); }
+function updateCriterio(id, field, value){ const c = state.rubric.criteria.find(c=>c.id===id); if(field==='maxPoints') c[field]=Number(value)||0; else c[field]=value; }
+function updateBanda(critId, idx, field, value){ const c = state.rubric.criteria.find(c=>c.id===critId); if(field==='min') c.bands[idx].min = value===''?null:Number(value); else c.bands[idx].desc = value; }
 
 function renderRubric(){
   document.getElementById('rubric-title').value = state.rubric.title||'';
@@ -479,19 +673,14 @@ function renderRubric(){
 }
 function exportRubricJSON(){
   const blob = new Blob([JSON.stringify(state.rubric,null,2)], {type:'application/json'});
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = 'rubrica.json';
-  a.click();
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'rubrica.json'; a.click();
 }
 function importRubricJSON(file){
   if(!file) return;
   const reader = new FileReader();
   reader.onload = e=>{
-    try{
-      state.rubric = normalizeRubric(JSON.parse(e.target.result));
-      renderRubric();
-    }catch(err){ alert('El archivo no es un JSON de rúbrica válido: '+err.message); }
+    try{ state.rubric = normalizeRubric(JSON.parse(e.target.result)); renderRubric(); }
+    catch(err){ alert('El archivo no es un JSON de rúbrica válido: '+err.message); }
   };
   reader.readAsText(file);
 }
@@ -513,7 +702,7 @@ Reglas:
 async function extractRubricText(file){
   const name = file.name.toLowerCase();
   if(name.endsWith('.docx')){
-    if(typeof mammoth==='undefined') throw new Error('La librería para leer DOCX no cargó (revisa tu conexión a internet).');
+    if(typeof mammoth==='undefined') throw new Error('La librería para leer DOCX no cargó.');
     const arrayBuffer = await file.arrayBuffer();
     const result = await mammoth.convertToHtml({arrayBuffer});
     const div = document.createElement('div');
@@ -540,28 +729,18 @@ async function extractRubricText(file){
 function normalizeRubric(obj){
   if(!obj || typeof obj!=='object') throw new Error('estructura vacía');
   if(obj.error) throw new Error(String(obj.error));
-  const rub = {
-    title: String(obj.title||'Rúbrica importada'),
-    instructedPages: {min:null, max:null},
-    criteria: []
-  };
+  const rub = { title: String(obj.title||'Rúbrica importada'), instructedPages:{min:null, max:null}, criteria:[] };
   if(obj.instructedPages && typeof obj.instructedPages==='object'){
     rub.instructedPages.min = (obj.instructedPages.min==null||obj.instructedPages.min==='')?null:(Number(obj.instructedPages.min)||null);
     rub.instructedPages.max = (obj.instructedPages.max==null||obj.instructedPages.max==='')?null:(Number(obj.instructedPages.max)||null);
   }
-  const criteria = Array.isArray(obj.criteria)?obj.criteria:[];
-  criteria.forEach((c,i)=>{
+  (Array.isArray(obj.criteria)?obj.criteria:[]).forEach((c,i)=>{
     const id = (c.id && String(c.id).trim().replace(/\s+/g,'_')) || ('crit_'+(i+1)+'_'+Date.now());
     let bands = (Array.isArray(c.bands)?c.bands:[]).map(b=>({
       min: (b.min==null||b.min==='')?null:(Number(b.min)||0),
       desc: String(b.desc||b.label||'')
     }));
-    rub.criteria.push({
-      id, name:String(c.name||('Criterio '+(i+1))),
-      isGate: !!c.isGate,
-      maxPoints: Number(c.maxPoints)||0,
-      bands: bands.length?bands:[{min:null,desc:''}]
-    });
+    rub.criteria.push({ id, name:String(c.name||('Criterio '+(i+1))), isGate:!!c.isGate, maxPoints:Number(c.maxPoints)||0, bands:bands.length?bands:[{min:null,desc:''}] });
   });
   if(!rub.criteria.length) throw new Error('el JSON no contiene criterios evaluables');
   return rub;
@@ -573,22 +752,20 @@ async function importRubricWithAI(file){
   statusEl.textContent = '';
   const cfg = readApiConfigInputs();
   if(!apiConfigReady(cfg)){
-    openApiDialog('Para convertir una rúbrica desde PDF/DOCX se necesita configurar un motor de IA gratuito o local.');
+    openApiDialog('Para convertir una rúbrica desde PDF/DOCX se necesita configurar el motor de IA.');
     return;
   }
   try{
     statusEl.textContent = 'Extrayendo texto de '+file.name+'…';
     const text = await extractRubricText(file);
-    if(text.trim().length<40) throw new Error('no se pudo extraer texto suficiente (¿PDF escaneado o de imágenes? Esta herramienta no realiza OCR).');
+    if(text.trim().length<40) throw new Error('no se pudo extraer texto suficiente (¿PDF escaneado?).');
     const MAXR = 20000;
     const clipped = text.length>MAXR;
-    statusEl.textContent = 'Convirtiendo rúbrica con IA ('+text.length.toLocaleString('es')+' caracteres)…';
+    statusEl.textContent = 'Convirtiendo rúbrica con IA…';
     const raw = await callLLM(SYSTEM_PROMPT_RUBRIC_IMPORT, 'RÚBRICA EN TEXTO:\n\n'+text.slice(0,MAXR), 4000, msg=>{ statusEl.textContent=msg; });
-    const parsed = parseJsonLoose(raw);
-    state.rubric = normalizeRubric(parsed);
+    state.rubric = normalizeRubric(parseJsonLoose(raw));
     renderRubric();
-    statusEl.textContent = 'Rúbrica convertida: '+state.rubric.criteria.length+' criterio(s). Revisa y corrige si hace falta; puedes guardarla con "Exportar JSON".'
-      +(clipped?' (Aviso: texto truncado a '+MAXR.toLocaleString('es')+' caracteres.)':'');
+    statusEl.textContent = 'Rúbrica convertida: '+state.rubric.criteria.length+' criterio(s).'+(clipped?' (Texto truncado a '+MAXR.toLocaleString('es')+' caracteres.)':'');
   }catch(err){
     console.error(err);
     statusEl.textContent = 'Error al importar la rúbrica: '+err.message;
@@ -616,14 +793,10 @@ async function handleFileUpload(file){
   try{
     let parsed;
     const name = file.name.toLowerCase();
-    if(name.endsWith('.docx')){
-      parsed = await parseDocx(file);
-    }else if(name.endsWith('.pdf')){
-      parsed = await parsePdf(file);
-    }else{
-      statusEl.textContent = 'Formato no soportado. Usa .docx o .pdf.';
-      return;
-    }
+    if(name.endsWith('.docx')) parsed = await parseDocx(file);
+    else if(name.endsWith('.pdf')) parsed = await parsePdf(file);
+    else { statusEl.textContent = 'Formato no soportado. Usa .docx o .pdf.'; return; }
+
     if(!parsed.paras.length){
       statusEl.textContent = 'No se pudo extraer texto del archivo (¿PDF escaneado o de imágenes?). Esta herramienta no realiza OCR.';
       return;
@@ -637,10 +810,20 @@ async function handleFileUpload(file){
     });
     const estPages = parsed.pages || Math.max(1, Math.round(wordCount/350));
     state.doc = { name:file.name, paragraphs, headings, wordCount, estPages, pages: parsed.pages||null };
+    state.studentName = detectStudentNameFromDoc(paragraphs);
+    state.scope = {
+      mode:'all',
+      fromIdx:0,
+      toIdx: Math.max(0, headings.length-1),
+      selectedHeadingIdxs: new Set(headings.map((_,i)=>i)),
+      includePrelim:true
+    };
     state.deterministic = null;
     state.observations = [];
     state.synthesis = null;
     renderDocPreview();
+    setStudentName(state.studentName);
+    renderScopeBars();
     statusEl.textContent = '';
     document.getElementById('btn-to-step3').disabled = false;
   }catch(err){
@@ -650,7 +833,7 @@ async function handleFileUpload(file){
 }
 
 async function parseDocx(file){
-  if(typeof mammoth==='undefined') throw new Error('No se pudo cargar mammoth.js (se requiere internet la primera vez para leer .docx).');
+  if(typeof mammoth==='undefined') throw new Error('No se pudo cargar mammoth.js.');
   const arrayBuffer = await file.arrayBuffer();
   const result = await mammoth.convertToHtml({arrayBuffer});
   const div = document.createElement('div');
@@ -664,7 +847,7 @@ async function parseDocx(file){
 }
 
 async function parsePdf(file){
-  if(typeof pdfjsLib==='undefined') throw new Error('No se pudo cargar pdf.js (se requiere internet la primera vez para leer .pdf).');
+  if(typeof pdfjsLib==='undefined') throw new Error('No se pudo cargar pdf.js.');
   const arrayBuffer = await file.arrayBuffer();
   const pdf = await pdfjsLib.getDocument({data:arrayBuffer}).promise;
   const paras = [];
@@ -686,21 +869,65 @@ async function parsePdf(file){
   return {paras, pages:pdf.numPages};
 }
 
+function romanToInt(s){
+  const map={I:1,V:5,X:10,L:50,C:100,D:500,M:1000};
+  let total=0, prev=0;
+  for(const ch of s.toUpperCase().split('').reverse()){
+    const v = map[ch]||0;
+    total += v<prev ? -v : v;
+    prev = v;
+  }
+  return total||null;
+}
+
 function detectHeadingsAndParagraphs(rawParas){
-  const headingRe = /^(\d+(?:\.\d+){0,5})[.)]?\s+(.{0,140})$/;
+  const headingRe = /^(\d{1,2}(?:\.\d{1,2}){0,5})[.)]?\s+(.{1,140})$/;
+  const chapterRe = /^cap[ií]tulo\s+(\d{1,2}|[IVXLCDM]+)\b[.:—\-\s]*(.{0,140})$/i;
   const paragraphs = [];
   const headings = [];
   let lastRef = null;
+  let currentHeadingIdx = -1;
+
   rawParas.forEach((raw,i)=>{
     const text = String(raw.text||'').replace(/\s*⟦p\.\d+⟧\s*$/,'').trim();
-    const m = text.match(headingRe);
     let isHeading = false;
-    if(m && text.length < 160){
+    let ref = null;
+    let titleText = text;
+
+    const cm = text.match(chapterRe);
+    if(cm && text.length < 160){
+      const num = /^\d+$/.test(cm[1]) ? cm[1] : String(romanToInt(cm[1])||cm[1]);
+      ref = num;
+      titleText = cm[2] ? ('Capítulo '+cm[1]+': '+cm[2]) : ('Capítulo '+cm[1]);
       isHeading = true;
-      lastRef = m[1];
-      headings.push({ref:m[1], text:m[2]||text, idx:i});
+    } else {
+      const m = text.match(headingRe);
+      if(m && text.length < 160){
+        ref = m[1];
+        titleText = m[2]||text;
+        isHeading = true;
+      }
     }
-    paragraphs.push({id:i, text, sectionRef:lastRef, isHeading, page: raw.page||null});
+
+    if(isHeading){
+      lastRef = ref;
+      currentHeadingIdx = headings.length;
+      headings.push({
+        hIndex: currentHeadingIdx,
+        ref,
+        text: titleText,
+        depth: ref.split('.').length,
+        idx: i
+      });
+    }
+    paragraphs.push({
+      id: i,
+      text,
+      sectionRef: lastRef,
+      headingIdx: currentHeadingIdx,
+      isHeading,
+      page: raw.page||null
+    });
   });
   return {paragraphs, headings};
 }
@@ -708,46 +935,277 @@ function detectHeadingsAndParagraphs(rawParas){
 function renderDocPreview(){
   const d = state.doc;
   const el = document.getElementById('doc-preview');
-  const weak = d.headings.length < 3;
+  const weak = d.headings.length < 2;
   el.innerHTML = `
     <div class="card">
       <p><strong>${escapeHtml(d.name)}</strong> — ${d.wordCount.toLocaleString('es')} palabras · ${d.pages ? d.pages+' páginas (PDF)' : '≈ '+d.estPages+' pp. estimadas'} · ${d.paragraphs.length} párrafos (¶)</p>
-      <p class="muted">${d.headings.length} encabezados numerados detectados. Cada párrafo tiene una línea de referencia ¶N (y página) usada por el dictamen.</p>
-      ${weak?'<p class="hint">Se detectaron pocos encabezados numerados: la numeración podría no seguir el patrón "1.2.3" o usar estilos de Word.</p>':''}
+      <p class="muted">${d.headings.length} encabezados numerados detectados.</p>
+      <div class="field" style="margin-top:8px;">
+        <label for="student-name-step2">Nombre del alumno (para nombrar los archivos descargables)</label>
+        <input type="text" id="student-name-step2" value="${escapeHtml(state.studentName)}" placeholder="Ej. María Fernanda López" style="width:100%" oninput="setStudentName(this.value)">
+      </div>
+      <div class="scope-bar" id="step2-scope-bar"></div>
+      ${weak?'<p class="hint">Se detectaron pocos encabezados numerados (patrón "1", "1.2.3" o "Capítulo 1"). Se revisará el documento completo salvo que haya secciones numeradas.</p>':''}
       <details><summary style="cursor:pointer;color:var(--ink-muted);font-size:13px;">Ver índice detectado</summary>
         <table>${d.headings.map(h=>`<tr><td class="ref">§${escapeHtml(h.ref)}</td><td>${escapeHtml(h.text)}</td></tr>`).join('')}</table>
       </details>
     </div>`;
+  renderScopeBars();
 }
 
 /* ============================================================
-   VERIFICACIONES DETERMINISTAS (SIN IA)
+   ALCANCE DE REVISIÓN (CAPÍTULOS / SECCIONES / RANGOS)
+   ============================================================ */
+function getHeadingSubtreeEnd(hIdx){
+  if(!state.doc || !state.doc.headings.length) return 0;
+  const hs = state.doc.headings;
+  const baseRef = hs[hIdx].ref;
+  let end = hIdx;
+  for(let j=hIdx+1; j<hs.length; j++){
+    if(hs[j].ref.startsWith(baseRef+'.')) end = j;
+    else break;
+  }
+  return end;
+}
+
+function getSelectedHeadingSetForScope(sc){
+  const hs = state.doc ? state.doc.headings : [];
+  if(!hs.length || sc.mode==='all'){
+    return new Set(hs.map((_,i)=>i));
+  }
+  if(sc.mode==='range'){
+    const a = Math.min(sc.fromIdx, sc.toIdx);
+    const b = Math.max(sc.fromIdx, sc.toIdx);
+    const endB = getHeadingSubtreeEnd(b);
+    const set = new Set();
+    for(let i=a; i<=endB; i++) set.add(i);
+    return set;
+  }
+  return new Set(sc.selectedHeadingIdxs);
+}
+
+function getScopedParagraphs(sc){
+  if(!state.doc) return [];
+  const scope = sc || state.scope;
+  if(scope.mode==='all' || !state.doc.headings.length){
+    return state.doc.paragraphs;
+  }
+  const allowedHeadings = getSelectedHeadingSetForScope(scope);
+  const includePrelim = scope.mode==='custom' ? !!scope.includePrelim : false;
+  return state.doc.paragraphs.filter(p=>{
+    if(p.headingIdx===-1) return includePrelim;
+    return allowedHeadings.has(p.headingIdx);
+  });
+}
+
+function formatScopeLabel(sc){
+  if(!state.doc) return 'Sin documento';
+  const scope = sc || state.scope;
+  const hs = state.doc.headings;
+  if(scope.mode==='all' || !hs.length) return 'Todo el documento';
+  if(scope.mode==='range'){
+    const a = Math.min(scope.fromIdx, scope.toIdx);
+    const b = Math.max(scope.fromIdx, scope.toIdx);
+    if(a===b) return 'Solo §'+hs[a].ref+' ('+hs[a].text.slice(0,30)+')';
+    return 'De §'+hs[a].ref+' a §'+hs[b].ref;
+  }
+  const set = [...scope.selectedHeadingIdxs].sort((x,y)=>x-y);
+  if(!set.length) return scope.includePrelim ? 'Solo preliminares' : 'Ninguna sección seleccionada';
+  const refs = set.map(i=>'§'+hs[i].ref);
+  if(refs.length<=4) return refs.join(', ');
+  return refs.slice(0,3).join(', ')+' … ('+refs.length+' secciones)';
+}
+
+function renderScopeBars(){
+  const label = formatScopeLabel(state.scope);
+  const paras = state.doc ? getScopedParagraphs(state.scope) : [];
+  const words = paras.map(p=>p.text).join(' ').split(/\s+/).filter(Boolean).length;
+  const estPp = Math.max(1, Math.round(words/350));
+  const isPartial = state.doc && state.scope.mode!=='all' && state.doc.headings.length>0;
+
+  const hBadge = document.getElementById('header-scope-badge');
+  if(state.doc){
+    hBadge.style.display='inline-block';
+    hBadge.textContent = 'Alcance: '+label;
+  } else {
+    hBadge.style.display='none';
+  }
+
+  const html = state.doc ? `
+    <span class="badge ${isPartial?'scope':'ok'}">${isPartial?'Alcance parcial':'Documento completo'}</span>
+    <span><strong>${escapeHtml(label)}</strong> · ${paras.length} ¶ · ≈${words.toLocaleString('es')} palabras (≈${estPp} pp.)</span>
+    <button class="small" style="margin-left:auto;" onclick="openScopeDialog()" ${!state.doc.headings.length?'disabled':''}>🎯 Elegir capítulos / secciones</button>
+  ` : '<span class="muted">Carga primero un documento en el paso 2 para elegir el alcance.</span>';
+
+  ['step2-scope-bar','step3-scope-bar','step4-scope-bar'].forEach(id=>{
+    const el = document.getElementById(id);
+    if(el) el.innerHTML = html;
+  });
+}
+
+function openScopeDialog(){
+  if(!state.doc){ alert('Primero carga un documento en el paso 2.'); return; }
+  if(!state.doc.headings.length){ alert('No se detectaron encabezados numerados en este documento.'); return; }
+
+  const hs = state.doc.headings;
+  const fromSel = document.getElementById('scope-from');
+  const toSel = document.getElementById('scope-to');
+  const opts = hs.map((h,i)=>`<option value="${i}">§${escapeHtml(h.ref)} — ${escapeHtml(h.text.slice(0,65))}</option>`).join('');
+  fromSel.innerHTML = opts;
+  toSel.innerHTML = opts;
+  fromSel.value = String(state.scope.fromIdx||0);
+  toSel.value = String(state.scope.toIdx||0);
+
+  document.getElementById('scope-include-prelim').checked = !!state.scope.includePrelim;
+  document.getElementById('scope-text-msg').textContent = '';
+
+  const tree = document.getElementById('scope-tree');
+  tree.innerHTML = hs.map((h,i)=>{
+    const pad = Math.min(4, Math.max(0, h.depth-1)) * 18;
+    const checked = state.scope.selectedHeadingIdxs.has(i) ? 'checked' : '';
+    return `<label class="scope-item" style="padding-left:${pad}px">
+      <input type="checkbox" class="scope-cb" data-hidx="${i}" ${checked} onchange="onScopeCheckboxToggle(${i}, this.checked)">
+      <span class="ref">§${escapeHtml(h.ref)}</span>
+      <span>${escapeHtml(h.text.slice(0,85))}</span>
+    </label>`;
+  }).join('');
+
+  document.querySelectorAll('input[name="scope-mode"]').forEach(r=>{
+    r.checked = (r.value === state.scope.mode);
+  });
+  onScopeModeChange(state.scope.mode);
+  document.getElementById('scope-dialog').showModal();
+}
+
+function getDialogScopeDraft(){
+  const mode = document.querySelector('input[name="scope-mode"]:checked')?.value || 'all';
+  const fromIdx = Number(document.getElementById('scope-from').value)||0;
+  const toIdx = Number(document.getElementById('scope-to').value)||0;
+  const includePrelim = document.getElementById('scope-include-prelim').checked;
+  const selectedHeadingIdxs = new Set();
+  document.querySelectorAll('#scope-tree .scope-cb:checked').forEach(cb=>selectedHeadingIdxs.add(Number(cb.dataset.hidx)));
+  return {mode, fromIdx, toIdx, includePrelim, selectedHeadingIdxs};
+}
+
+function onScopeModeChange(mode){
+  document.getElementById('scope-range-controls').style.opacity = mode==='range' ? '1' : '.45';
+  document.getElementById('scope-custom-controls').style.opacity = mode==='custom' ? '1' : '.45';
+  updateScopePreview();
+}
+
+function onScopeCheckboxToggle(hIdx, checked){
+  const end = getHeadingSubtreeEnd(hIdx);
+  for(let j=hIdx+1; j<=end; j++){
+    const cb = document.querySelector(`.scope-cb[data-hidx="${j}"]`);
+    if(cb) cb.checked = checked;
+  }
+  const customRadio = document.querySelector('input[name="scope-mode"][value="custom"]');
+  if(customRadio && !customRadio.checked){
+    customRadio.checked = true;
+    onScopeModeChange('custom');
+  } else {
+    updateScopePreview();
+  }
+}
+
+function toggleAllScopeCheckboxes(val){
+  document.querySelectorAll('#scope-tree .scope-cb').forEach(cb=>{ cb.checked = val; });
+  document.querySelector('input[name="scope-mode"][value="custom"]').checked = true;
+  onScopeModeChange('custom');
+}
+
+function applyScopeText(){
+  const raw = document.getElementById('scope-text-input').value.trim();
+  const msgEl = document.getElementById('scope-text-msg');
+  if(!raw){ msgEl.textContent='Escribe por ejemplo: 1, 3.2-3.5'; return; }
+  const hs = state.doc.headings;
+  const norm = raw.replace(/§/g,'').replace(/\s+(a|al|hasta)\s+/gi,'-').replace(/[–—]/g,'-');
+  const tokens = norm.split(/[,;]+/).map(s=>s.trim()).filter(Boolean);
+  const toSelect = new Set();
+  const notFound = [];
+
+  tokens.forEach(tok=>{
+    if(tok.includes('-')){
+      const [aRef, bRef] = tok.split('-').map(x=>x.trim());
+      const aIdx = hs.findIndex(h=>h.ref===aRef);
+      const bIdx = hs.findIndex(h=>h.ref===bRef);
+      if(aIdx===-1 || bIdx===-1){ notFound.push(tok); return; }
+      const lo = Math.min(aIdx, bIdx);
+      const hi = getHeadingSubtreeEnd(Math.max(aIdx, bIdx));
+      for(let i=lo; i<=hi; i++) toSelect.add(i);
+    } else {
+      const idx = hs.findIndex(h=>h.ref===tok);
+      if(idx===-1){ notFound.push(tok); return; }
+      const hi = getHeadingSubtreeEnd(idx);
+      for(let i=idx; i<=hi; i++) toSelect.add(i);
+    }
+  });
+
+  document.querySelectorAll('#scope-tree .scope-cb').forEach(cb=>{
+    cb.checked = toSelect.has(Number(cb.dataset.hidx));
+  });
+  document.querySelector('input[name="scope-mode"][value="custom"]').checked = true;
+  onScopeModeChange('custom');
+  msgEl.textContent = notFound.length
+    ? 'No se encontraron: '+notFound.join(', ')+' (revisa la numeración exacta del índice).'
+    : 'Selección aplicada.';
+}
+
+function updateScopePreview(){
+  const draft = getDialogScopeDraft();
+  const paras = getScopedParagraphs(draft);
+  const words = paras.map(p=>p.text).join(' ').split(/\s+/).filter(Boolean).length;
+  const estPp = Math.max(1, Math.round(words/350));
+  const chunksCount = paras.length ? chunkParagraphList(paras).length : 0;
+  document.getElementById('scope-live-summary').innerHTML =
+    `<strong>Vista previa del alcance:</strong> ${escapeHtml(formatScopeLabel(draft))} — <b>${paras.length}</b> párrafos · <b>${words.toLocaleString('es')}</b> palabras (≈${estPp} pp.) · se enviará en <b>${chunksCount}</b> fragmento(s) a la IA.`;
+}
+
+function saveScopeDialog(){
+  const draft = getDialogScopeDraft();
+  const paras = getScopedParagraphs(draft);
+  if(!paras.length){
+    alert('El alcance seleccionado no incluye ningún párrafo. Marca al menos una sección o elige "Todo el documento".');
+    return;
+  }
+  state.scope = draft;
+  document.getElementById('scope-dialog').close();
+  renderScopeBars();
+  renderAiModeNote();
+}
+
+/* ============================================================
+   VERIFICACIONES DETERMINISTAS (CON SOPORTE DE ALCANCE)
    ============================================================ */
 function runDeterministicChecks(){
   if(!state.doc){ alert('Primero carga un documento.'); return; }
-  const paragraphs = state.doc.paragraphs;
-  const citations = checkCitations(paragraphs);
-  const headingIssues = checkHeadingNumbering(state.doc.headings);
-  const emptySections = checkEmptySections(paragraphs);
-  const lengthCheck = checkLength(state.doc, state.rubric.instructedPages);
-  const statSanity = checkStatSanity(paragraphs);
-  state.deterministic = {citations, headingIssues, emptySections, lengthCheck, statSanity};
+  const scopedParas = getScopedParagraphs(state.scope);
+  const isPartial = state.scope.mode!=='all' && state.doc.headings.length>0;
+  const allowedHeadings = getSelectedHeadingSetForScope(state.scope);
+  const scopedHeadings = isPartial
+    ? state.doc.headings.filter((_,i)=>allowedHeadings.has(i))
+    : state.doc.headings;
+
+  const citations = checkCitations(state.doc.paragraphs, scopedParas);
+  const headingIssues = checkHeadingNumbering(scopedHeadings);
+  const emptySections = checkEmptySections(scopedParas);
+  const lengthCheck = checkLength(scopedParas, state.rubric.instructedPages, isPartial);
+  const statSanity = checkStatSanity(scopedParas);
+  state.deterministic = {citations, headingIssues, emptySections, lengthCheck, statSanity, scopeLabel:formatScopeLabel(state.scope), isPartial};
   renderDeterministicResults();
 }
 
-function checkCitations(paragraphs){
-  const refIdx = paragraphs.findIndex(p=>/^(referencias|references|bibliograf[ií]a)$/i.test(p.text.trim()));
-  const bodyParas = refIdx>=0 ? paragraphs.slice(0,refIdx) : paragraphs;
-  const refParas = refIdx>=0 ? paragraphs.slice(refIdx+1) : [];
+function checkCitations(allParagraphs, scopedParagraphs){
+  const refIdx = allParagraphs.findIndex(p=>/^(referencias|references|bibliograf[ií]a)$/i.test(p.text.trim()));
+  const refParas = refIdx>=0 ? allParagraphs.slice(refIdx+1) : [];
+  const bodyParas = refIdx>=0 ? scopedParagraphs.filter(p=>p.id < refIdx) : scopedParagraphs;
   const bodyText = bodyParas.map(p=>p.text).join(' \n ');
 
   const citeRe = /\(?\b([A-ZÁÉÍÓÚÑ][A-Za-zÁÉÍÓÚÑñáéíóú'-]{2,})(?:\s*(?:&|y|et al\.?)\s*[A-ZÁÉÍÓÚÑ][A-Za-zÁÉÍÓÚÑñáéíóú'-]{2,})?,?\s*(\d{4})[a-z]?\)?/g;
   const found = new Map();
   let m;
   while((m=citeRe.exec(bodyText))){
-    const surname = m[1].toLowerCase();
-    const year = m[2];
-    found.set(surname+'|'+year, {surname:m[1], year});
+    found.set(m[1].toLowerCase()+'|'+m[2], {surname:m[1], year:m[2]});
   }
 
   const refEntries = new Set();
@@ -757,9 +1215,7 @@ function checkCitations(paragraphs){
   });
 
   const missing = [];
-  found.forEach((v,k)=>{
-    if(!refEntries.has(k)) missing.push(v);
-  });
+  found.forEach((v,k)=>{ if(!refEntries.has(k)) missing.push(v); });
   return { total:found.size, missing, hasReferencesSection: refIdx>=0 };
 }
 
@@ -767,9 +1223,7 @@ function checkHeadingNumbering(headings){
   const issues = [];
   const seen = new Map();
   headings.forEach(h=>seen.set(h.ref,(seen.get(h.ref)||0)+1));
-  seen.forEach((count,ref)=>{
-    if(count>1) issues.push({type:'duplicado', ref, detail:`El número "${ref}" aparece ${count} veces.`});
-  });
+  seen.forEach((count,ref)=>{ if(count>1) issues.push({type:'duplicado', ref, detail:`El número "${ref}" aparece ${count} veces.`}); });
   for(let i=1;i<headings.length;i++){
     const prev = headings[i-1].ref.split('.').map(Number);
     const cur = headings[i].ref.split('.').map(Number);
@@ -778,7 +1232,7 @@ function checkHeadingNumbering(headings){
       const parentCur = cur.slice(0,-1).join('.');
       const lastPrev = prev[prev.length-1], lastCur = cur[cur.length-1];
       if(parentPrev===parentCur && lastCur-lastPrev>1){
-        issues.push({type:'salto', ref:headings[i].ref, detail:`Salta de §${headings[i-1].ref} a §${headings[i].ref}: posibles subsecciones faltantes.`});
+        issues.push({type:'salto', ref:headings[i].ref, detail:`Salta de §${headings[i-1].ref} a §${headings[i].ref}.`});
       }
     }
   }
@@ -799,15 +1253,17 @@ function checkEmptySections(paragraphs){
   return issues;
 }
 
-function checkLength(doc, instructedPages){
+function checkLength(scopedParas, instructedPages, isPartial){
+  const words = scopedParas.map(p=>p.text).join(' ').split(/\s+/).filter(Boolean).length;
+  const estPages = Math.max(1, Math.round(words/350));
   const {min,max} = instructedPages||{};
-  let status='sin_rango';
-  if(min || max){
-    if(min && doc.estPages<min) status='corto';
-    else if(max && doc.estPages>max) status='largo';
+  let status = isPartial ? 'parcial' : 'sin_rango';
+  if(!isPartial && (min || max)){
+    if(min && estPages<min) status='corto';
+    else if(max && estPages>max) status='largo';
     else status='dentro';
   }
-  return {estPages:doc.estPages, min, max, status};
+  return {estPages, words, min, max, status};
 }
 
 function checkStatSanity(paragraphs){
@@ -827,7 +1283,7 @@ function checkStatSanity(paragraphs){
   });
   [...text.matchAll(/\b(alfa|α)\s*(?:de\s*cronbach)?\s*[=:]\s*([\d.,]+)/gi)].forEach(m=>{
     const v = parseFloat(m[2].replace(',','.'));
-    if(!isNaN(v) && v<0.70) issues.push({type:'fiabilidad', detail:`Coeficiente de fiabilidad bajo el umbral habitual (0.70): "${m[0].trim()}"`});
+    if(!isNaN(v) && v<0.70) issues.push({type:'fiabilidad', detail:`Coeficiente de fiabilidad bajo 0.70: "${m[0].trim()}"`});
   });
   return issues;
 }
@@ -836,6 +1292,7 @@ function renderDeterministicResults(){
   const d = state.deterministic;
   const el = document.getElementById('det-results');
   const lengthMsg = {
+    'parcial':`Alcance parcial (${escapeHtml(d.scopeLabel)}): ${d.lengthCheck.words.toLocaleString('es')} palabras (≈${d.lengthCheck.estPages} pp.). No se compara contra la extensión total de la tesis.`,
     'corto':`Por debajo del mínimo instruido (≈${d.lengthCheck.estPages} pp. vs. mínimo ${d.lengthCheck.min} pp.)`,
     'largo':`Por encima del máximo instruido (≈${d.lengthCheck.estPages} pp. vs. máximo ${d.lengthCheck.max} pp.)`,
     'dentro':`Dentro del rango instruido (≈${d.lengthCheck.estPages} pp.)`,
@@ -843,7 +1300,7 @@ function renderDeterministicResults(){
   }[d.lengthCheck.status];
 
   el.innerHTML = `
-    <div class="card"><h3>Extensión</h3><p class="muted">${lengthMsg}</p></div>
+    <div class="card"><h3>Extensión analizada</h3><p class="muted">${lengthMsg}</p></div>
     <div class="card">
       <h3>Citas sin entrada en Referencias (${d.citations.missing.length} candidatas)</h3>
       ${!d.citations.hasReferencesSection?'<p class="hint">No se detectó una sección "Referencias" — este chequeo no es confiable.</p>':''}
@@ -856,7 +1313,7 @@ function renderDeterministicResults(){
         '<table>'+d.headingIssues.map(h=>`<tr><td class="badge">${h.type}</td><td>${escapeHtml(h.detail)}</td></tr>`).join('')+'</table>'}
     </div>
     <div class="card">
-      <h3>Secciones aparentemente vacías (${d.emptySections.length})</h3>
+      <h3>Secciones aparentemente vacías en el alcance (${d.emptySections.length})</h3>
       ${d.emptySections.length===0?'<p class="muted">Sin secciones vacías detectadas.</p>':
         '<table>'+d.emptySections.map(s=>`<tr><td>${escapeHtml(s.detail)}</td></tr>`).join('')+'</table>'}
     </div>
@@ -879,7 +1336,7 @@ const API_DEFAULTS = {
   lmstudio:  {endpoint:'http://localhost:1234/v1/chat/completions', model:'', local:true, keyHint:'No necesaria para LM Studio — escribe el ID del modelo'},
   openai:    {endpoint:'https://api.openai.com/v1/chat/completions', model:'gpt-4o', local:false, keyHint:'Pega tu API key de OpenAI (de pago)'},
   anthropic: {endpoint:'https://api.anthropic.com/v1/messages', model:'claude-sonnet-4-6', local:false, keyHint:'Pega tu API key de Anthropic (de pago)'},
-  custom:    {endpoint:'', model:'', local:false, keyHint:'Pega tu API key, o déjala vacía si tu proxy local no la exige'}
+  custom:    {endpoint:'', model:'', local:false, keyHint:'Pega tu API key'}
 };
 const API_CFG_LS_KEY = 'dictamen-doctoral-api-cfg-v2';
 
@@ -893,13 +1350,8 @@ function closeApiDialog(){
   updateApiBadge();
   document.getElementById('api-config-dialog').close();
 }
-
-function isLocalEndpoint(cfg){
-  return /:\/\/(localhost|127\.0\.0\.1)/i.test(cfg.endpoint||'');
-}
-function apiConfigReady(cfg){
-  return !!(cfg.endpoint && cfg.model && (cfg.key || API_DEFAULTS[cfg.provider]?.local || isLocalEndpoint(cfg)));
-}
+function isLocalEndpoint(cfg){ return /:\/\/(localhost|127\.0\.0\.1)/i.test(cfg.endpoint||''); }
+function apiConfigReady(cfg){ return !!(cfg.endpoint && cfg.model && (cfg.key || API_DEFAULTS[cfg.provider]?.local || isLocalEndpoint(cfg))); }
 
 function updateApiBadge(){
   const badge = document.getElementById('api-status-badge');
@@ -914,7 +1366,7 @@ function updateApiBadge(){
     badge.textContent = 'Motor listo: '+cfg.provider+' ('+cfg.model+')';
   } else {
     badge.className = 'badge warn';
-    badge.textContent = 'Motor sin configurar (haz clic en ⚙ Motor de IA)';
+    badge.textContent = 'Motor sin configurar';
   }
 }
 
@@ -930,7 +1382,7 @@ function applyProviderUI(provider, saved){
 function loadApiConfigUI(){
   let saved = null;
   try{ saved = JSON.parse(localStorage.getItem(API_CFG_LS_KEY)||'null'); }catch(e){}
-  const provider = (saved && API_DEFAULTS[saved.provider]) ? saved.provider : 'groq';
+  const provider = (saved && API_DEFAULTS[saved.provider]) ? saved.provider : 'gemini';
   document.getElementById('cfg-provider').value = provider;
   applyProviderUI(provider, saved);
   document.getElementById('cfg-remember').checked = true;
@@ -938,8 +1390,7 @@ function loadApiConfigUI(){
 }
 
 function onProviderChange(){
-  const provider = document.getElementById('cfg-provider').value;
-  applyProviderUI(provider, null);
+  applyProviderUI(document.getElementById('cfg-provider').value, null);
   document.getElementById('cfg-status').textContent = '';
   updateApiBadge();
 }
@@ -949,8 +1400,7 @@ function readApiConfigInputs(){
   const endpoint = document.getElementById('cfg-endpoint').value.trim();
   const model    = document.getElementById('cfg-model').value.trim();
   const key      = document.getElementById('cfg-key').value.trim();
-  const remember = document.getElementById('cfg-remember').checked;
-  if(remember){
+  if(document.getElementById('cfg-remember').checked){
     try{ localStorage.setItem(API_CFG_LS_KEY, JSON.stringify({provider,endpoint,model,key})); }catch(e){}
   }else{
     try{ localStorage.removeItem(API_CFG_LS_KEY); }catch(e){}
@@ -965,11 +1415,11 @@ async function fetchWithRetry(url, options, onRetryMsg){
     try{
       response = await fetch(url, options);
     }catch(netErr){
-      throw new Error('Error de red/CORS ('+netErr.message+'). Si abriste el archivo con file://, usa Groq/OpenRouter o sirve el archivo con "python -m http.server 8080".');
+      throw new Error('Error de red/CORS ('+netErr.message+').');
     }
     if(response.status===429 && attempt<delays.length){
       const waitMs = delays[attempt];
-      if(onRetryMsg) onRetryMsg('Límite de peticiones (429): esperando '+Math.round(waitMs/1000)+'s para reintentar…');
+      if(onRetryMsg) onRetryMsg('Límite de peticiones (429): esperando '+Math.round(waitMs/1000)+'s…');
       await new Promise(r=>setTimeout(r, waitMs));
       continue;
     }
@@ -984,44 +1434,32 @@ async function fetchWithRetry(url, options, onRetryMsg){
 async function callLLM(systemPrompt, userText, maxTokens, onRetryMsg){
   const cfg = readApiConfigInputs();
   updateApiBadge();
-  if(!cfg.endpoint || !cfg.model){
-    throw new Error('Falta el endpoint o el modelo del motor de IA (botón "⚙ Motor de IA").');
-  }
-  if(!cfg.key && !(API_DEFAULTS[cfg.provider]?.local || isLocalEndpoint(cfg))){
-    throw new Error('Falta la API key (botón "⚙ Motor de IA"). Para Ollama/LM Studio puedes dejarla vacía.');
-  }
+  if(!cfg.endpoint || !cfg.model) throw new Error('Falta endpoint o modelo en ⚙ Motor de IA.');
+  if(!cfg.key && !(API_DEFAULTS[cfg.provider]?.local || isLocalEndpoint(cfg))) throw new Error('Falta la API key en ⚙ Motor de IA.');
   const key = cfg.key || 'sk-local';
 
-  // Google Gemini nativo (:generateContent) evita problemas de CORS de la ruta /openai/
   if((cfg.provider==='gemini' || cfg.endpoint.includes(':generateContent')) && !cfg.endpoint.includes('/openai/')){
     let url = cfg.endpoint.includes('{model}')
       ? cfg.endpoint.replace('{model}', encodeURIComponent(cfg.model))
       : cfg.endpoint;
-    if(!/[?&]key=/.test(url)){
-      url += (url.includes('?') ? '&' : '?') + 'key=' + encodeURIComponent(key);
-    }
+    if(!/[?&]key=/.test(url)) url += (url.includes('?') ? '&' : '?') + 'key=' + encodeURIComponent(key);
+
     const response = await fetchWithRetry(url, {
       method:'POST',
       headers:{'Content-Type':'application/json'},
       body: JSON.stringify({
         system_instruction: { parts: [{ text: systemPrompt }] },
         contents: [{ role:'user', parts: [{ text: userText }] }],
-        generationConfig: { temperature: 0.2, maxOutputTokens: maxTokens||2200 }
+        generationConfig: { temperature: 0.2, maxOutputTokens: maxTokens||2800 }
       })
     }, onRetryMsg);
     const data = await response.json();
     const cand = data.candidates && data.candidates[0];
-    const txt = cand && cand.content && cand.content.parts
-      ? cand.content.parts.map(p=>p.text||'').join('\n')
-      : '';
-    if(!txt){
-      const reason = (cand && cand.finishReason) || (data.error && data.error.message) || 'sin contenido';
-      throw new Error('Gemini no devolvió texto ('+reason+').');
-    }
+    const txt = cand && cand.content && cand.content.parts ? cand.content.parts.map(p=>p.text||'').join('\n') : '';
+    if(!txt) throw new Error('Gemini no devolvió texto ('+((cand&&cand.finishReason)||(data.error&&data.error.message)||'vacío')+').');
     return txt;
   }
 
-  // Anthropic
   if(cfg.provider==='anthropic'){
     const response = await fetchWithRetry(cfg.endpoint, {
       method:'POST',
@@ -1032,36 +1470,30 @@ async function callLLM(systemPrompt, userText, maxTokens, onRetryMsg){
         'anthropic-dangerous-direct-browser-access': 'true'
       },
       body: JSON.stringify({
-        model: cfg.model,
-        max_tokens: maxTokens||1600,
-        temperature: 0.2,
-        system: systemPrompt,
-        messages: [{role:'user', content:userText}]
+        model: cfg.model, max_tokens: maxTokens||2200, temperature: 0.2,
+        system: systemPrompt, messages: [{role:'user', content:userText}]
       })
     }, onRetryMsg);
     const data = await response.json();
     return (data.content||[]).filter(b=>b.type==='text').map(b=>b.text).join('\n');
   }
 
-  // Proveedores compatibles OpenAI (Groq, OpenRouter, Ollama, LM Studio, Z.ai, OpenAI…)
   const headers = {'Content-Type':'application/json','Authorization':'Bearer '+key};
   if(cfg.provider==='openrouter'){
     headers['HTTP-Referer'] = 'https://localhost/dictamen-doctoral';
     headers['X-Title'] = 'Dictamen doctoral';
   }
-  const body = {
-    model: cfg.model,
-    temperature: 0.2,
-    max_tokens: maxTokens||1600,
-    messages:[
-      {role:'system', content:systemPrompt},
-      {role:'user',   content:userText}
-    ]
-  };
-  const response = await fetchWithRetry(cfg.endpoint, {method:'POST', headers, body: JSON.stringify(body)}, onRetryMsg);
+  const response = await fetchWithRetry(cfg.endpoint, {
+    method:'POST',
+    headers,
+    body: JSON.stringify({
+      model: cfg.model, temperature: 0.2, max_tokens: maxTokens||2500,
+      messages:[{role:'system', content:systemPrompt},{role:'user', content:userText}]
+    })
+  }, onRetryMsg);
   const data = await response.json();
   const content = data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content;
-  if(!content){ throw new Error('Respuesta sin contenido (estructura inesperada del endpoint).'); }
+  if(!content) throw new Error('Respuesta sin contenido.');
   return content;
 }
 
@@ -1069,22 +1501,23 @@ async function testApiConnection(){
   const status = document.getElementById('cfg-status');
   status.textContent = 'Probando conexión…';
   try{
-    const r = await callLLM('Responde únicamente con la palabra OK.', 'Di OK.', 20, msg=>{ status.textContent=msg; });
-    status.textContent = 'Conexión correcta — respuesta: '+String(r).trim().slice(0,40);
+    const r = await callLLM('Responde únicamente con OK.', 'Di OK.', 20, msg=>{ status.textContent=msg; });
+    status.textContent = 'Conexión correcta — '+String(r).trim().slice(0,40);
   }catch(err){
     status.textContent = 'Error: '+err.message;
   }
 }
 
 /* ============================================================
-   EVALUACIÓN CON IA
+   EVALUACIÓN CON IA — FRAGMENTOS Y SÍNTESIS DE DIRECTOR DOCTORAL
    ============================================================ */
 function renderAiModeNote(){
   const el = document.getElementById('ai-mode-note');
-  let msg = 'La evaluación con IA procesa el documento por fragmentos (≈9000 caracteres), evalúa cada uno contra la rúbrica y luego sintetiza el dictamen final con referencias ¶N · p.X.';
+  let msg = 'Evaluación desde el rol de investigador y director de tesis doctoral en Ciencias de la Educación. Puedes generar 3 vistas del dictamen (Ejecutivo, Tabla operativa de acción/corrección y Completo) sobre el alcance seleccionado.';
   if(state.doc){
-    const n = chunkDocument(state.doc).length;
-    msg += ' Este documento se dividirá en '+n+' fragmento(s).';
+    const paras = getScopedParagraphs(state.scope);
+    const n = chunkParagraphList(paras).length;
+    msg += ' Alcance actual: <strong>'+escapeHtml(formatScopeLabel(state.scope))+'</strong> ('+n+' fragmento(s)).';
   }
   el.innerHTML = msg;
 }
@@ -1097,30 +1530,30 @@ function parseJsonLoose(text){
     .replace(/^```\s*/,'')
     .replace(/```\s*$/,'')
     .trim();
-  try{
-    return JSON.parse(cleaned);
-  }catch(e){
+  try{ return JSON.parse(cleaned); }
+  catch(e){
     const first = cleaned.indexOf('{');
     const last = cleaned.lastIndexOf('}');
-    if(first!==-1 && last>first){
-      return JSON.parse(cleaned.slice(first, last+1));
-    }
+    if(first!==-1 && last>first) return JSON.parse(cleaned.slice(first, last+1));
     throw e;
   }
 }
 
-function chunkDocument(doc){
+function chunkParagraphList(paragraphs){
   const MAX_CHARS = 9000;
   const groups = [];
   let current = null;
-  doc.paragraphs.forEach(p=>{
-    if(p.isHeading && /^\d+$/.test(p.sectionRef||'')){
-      if(current) groups.push(current);
-      current = {ref:p.sectionRef, title:p.text, paragraphs:[p]};
-    } else if(current){
-      current.paragraphs.push(p);
+
+  paragraphs.forEach(p=>{
+    const isChapter = p.isHeading && /^\d+$/.test(p.sectionRef||'');
+    const curLen = current ? current.paragraphs.reduce((acc,x)=>acc+x.text.length+1,0) : 0;
+    if(!current){
+      current = {ref: p.sectionRef||'0', title: p.isHeading?p.text:'Inicio del alcance', paragraphs:[p]};
+    } else if(isChapter || (p.isHeading && curLen > 6000)){
+      groups.push(current);
+      current = {ref: p.sectionRef||current.ref, title: p.text, paragraphs:[p]};
     } else {
-      current = {ref:'0', title:'Preliminares', paragraphs:[p]};
+      current.paragraphs.push(p);
     }
   });
   if(current) groups.push(current);
@@ -1145,21 +1578,27 @@ function chunkDocument(doc){
   return chunks;
 }
 
-const SYSTEM_PROMPT_CHUNK = `Eres sinodal de un comité doctoral en Ciencias de la Educación. Evalúas UN FRAGMENTO de una tesis doctoral contra los criterios de rúbrica entregados, con el nivel de exigencia de una defensa doctoral. Sé directo y evidenciado: no uses diplomacia innecesaria ni elogios genéricos.
+const SYSTEM_PROMPT_CHUNK = `Eres investigador titular y director de tesis doctoral experto en Ciencias de la Educación. Evalúas UN FRAGMENTO de una tesis doctoral en construcción contra los criterios aplicables de la rúbrica, con el rigor metodológico y teórico de una defensa doctoral.
+
+Regla clave de revisión incremental:
+- Si en el mensaje se indica un ALCANCE PARCIAL (p. ej. "solo §1" o "de §3.2 a §3.5"), evalúa EXCLUSIVAMENTE la calidad de lo que está escrito en ese alcance. NO critiques ni penalices la ausencia, brevedad o estado de plantilla de otros capítulos o secciones fuera de ese alcance.
 
 Revisa especialmente:
-- Coherencia paradigmática: en trabajo cualitativo, que enfoque, diseño, técnica de recolección y análisis estén alineados; en cuantitativo, que hipótesis, variables, instrumento, diseño y prueba estadística lo estén.
-- Que el marco teórico sintetice y tome postura, no que solo liste autores.
-- Que los estudios empíricos citados sean recientes (idealmente últimos 5 años) y suficientes.
-- Supuestos estadísticos: pruebas paramétricas requieren verificar normalidad; valores estadísticamente imposibles son error grave.
-- Alineación entre pregunta(s), objetivo(s), operacionalización e instrumento(s).
-- Formato APA 7, consistencia de voz autoral, ausencia de artefactos de traducción automática.
-- Las "notas de verificación previa" ya están confirmadas por reglas de texto: no las repitas como hallazgo propio, pero puedes profundizar en su implicación.
+- Coherencia paradigmática y epistémica: en investigación cualitativa, alineación entre enfoque, diseño, recolección y análisis; en cuantitativa, hipótesis, variables, operacionalización, instrumento y pruebas estadísticas; en mixta, justificación e integración real.
+- Nivel doctoral del marco teórico: síntesis problematizadora y postura propia del tesista (evitar catálogos descriptivos de autores).
+- Actualidad y pertinencia de estudios empíricos (preferentemente últimos 5 años) y rigor APA 7.
+- Alineación interna: pregunta(s), objetivo(s), supuestos/hipótesis y método.
+- Redacción académica doctoral, consistencia de voz autoral y ausencia de muletillas o traducción automática.
 
 Responde ÚNICAMENTE con JSON válido, sin texto adicional ni backticks, con esta forma exacta:
-{"resumenFragmento":"...","observaciones":[{"seccion":"§x.y","severidad":"critica|importante|sugerencia","cita":"...","comentario":"...","mejora":"..."}]}
+{"resumenFragmento":"...","observaciones":[{"seccion":"§x.y","severidad":"critica|importante|sugerencia","cita":"...","comentario":"...","mejora":"...","accion":"..."}]}
 
-Máximo 8 observaciones por fragmento, las más importantes primero. "cita" debe ser un fragmento textual literal de máximo 15 palabras tomado del texto entregado. "comentario" y "mejora" de máximo 30 palabras cada uno.`;
+Instrucciones por campo:
+- Máximo 8 observaciones por fragmento, priorizando las críticas e importantes.
+- "cita": fragmento textual literal de máximo 15 palabras tomado del texto entregado (si aplica al párrafo; si es una omisión estructural de la sección, cita el encabezado o frase de entrada).
+- "comentario" (error o hallazgo detectado): diagnóstico técnico claro y directo, máx. 30 palabras.
+- "mejora" (sugerencia de mejora): orientación académica fundamentada, máx. 30 palabras.
+- "accion" (acción y corrección a implementar): instrucción operativa concreta en infinitivo o imperativo sobre qué reescribir, añadir, eliminar o reestructurar, máx. 30 palabras.`;
 
 function relevantDeterministicNotes(chunk){
   if(!state.deterministic) return 'Ninguna (no se ejecutaron verificaciones deterministas).';
@@ -1172,7 +1611,11 @@ function relevantDeterministicNotes(chunk){
 
 function buildChunkUserMessage(chunk){
   const rubricSummary = state.rubric.criteria.map(c=>`- ${c.name} (máx ${c.maxPoints} pts): ${c.bands.map(b=>b.desc).join(' | ')}`).join('\n');
-  return `RÚBRICA:\n${rubricSummary}\n\nNOTAS DE VERIFICACIÓN PREVIA PARA ESTE FRAGMENTO:\n${relevantDeterministicNotes(chunk)}\n\nFRAGMENTO (§${chunk.ref} — ${chunk.title||''}):\n${chunk.text}`;
+  const isPartial = state.scope.mode!=='all' && state.doc.headings.length>0;
+  const scopeNote = isPartial
+    ? `ALCANCE PARCIAL ACTIVO: Solo se está revisando "${formatScopeLabel(state.scope)}". No señales falta de otros capítulos fuera de este alcance.`
+    : 'ALCANCE: Documento completo.';
+  return `${scopeNote}\n\nRÚBRICA:\n${rubricSummary}\n\nNOTAS DE VERIFICACIÓN PREVIA:\n${relevantDeterministicNotes(chunk)}\n\nFRAGMENTO (§${chunk.ref} — ${chunk.title||''}):\n${chunk.text}`;
 }
 
 function paragraphAnchor(p){
@@ -1183,15 +1626,17 @@ function matchExcerptToParagraph(o){
   if(!o.cita || !state.doc) return;
   const needle = o.cita.trim().toLowerCase().slice(0,40);
   if(needle.length<8) return;
-  const p = state.doc.paragraphs.find(p=>p.text.toLowerCase().includes(needle));
+  const scoped = getScopedParagraphs(state.scope);
+  const p = scoped.find(p=>p.text.toLowerCase().includes(needle)) || state.doc.paragraphs.find(p=>p.text.toLowerCase().includes(needle));
   if(p){
     o.matchedParagraphId = p.id;
+    o.pageEst = p.estPage;
     o.anchor = paragraphAnchor(p);
   }
 }
 
 async function evaluateChunk(chunk, onRetryMsg){
-  const raw = await callLLM(SYSTEM_PROMPT_CHUNK, buildChunkUserMessage(chunk), 2200, onRetryMsg);
+  const raw = await callLLM(SYSTEM_PROMPT_CHUNK, buildChunkUserMessage(chunk), 2800, onRetryMsg);
   const parsed = parseJsonLoose(raw);
   const obs = (parsed.observaciones||[]).map(o=>({
     chunkRef: chunk.ref,
@@ -1199,7 +1644,8 @@ async function evaluateChunk(chunk, onRetryMsg){
     severidad: ['critica','importante','sugerencia'].includes(o.severidad)?o.severidad:'sugerencia',
     cita: o.cita||'',
     comentario: o.comentario||'',
-    mejora: o.mejora||''
+    mejora: o.mejora||'',
+    accion: o.accion||o.mejora||''
   }));
   return {summary: parsed.resumenFragmento||'', observations: obs};
 }
@@ -1234,13 +1680,20 @@ async function runAIEvaluation(){
   if(!state.rubric.criteria.length){ alert('Primero define o carga una rúbrica.'); return; }
   const cfg = readApiConfigInputs();
   if(!apiConfigReady(cfg)){
-    openApiDialog('Para generar el dictamen necesitas configurar una API gratuita (Groq, Google AI Studio u OpenRouter) o un motor local (Ollama).');
+    openApiDialog('Configura una API gratuita o motor local antes de generar el dictamen.');
     return;
   }
+  const scopedParas = getScopedParagraphs(state.scope);
+  if(!scopedParas.length){
+    alert('El alcance seleccionado está vacío. Elige capítulos o secciones con contenido.');
+    return;
+  }
+
   const btn = document.getElementById('btn-run-ai');
   btn.disabled = true;
-  state.chunks = chunkDocument(state.doc);
+  state.chunks = chunkParagraphList(scopedParas);
   state.observations = [];
+  state.synthesis = null;
   state.chunkSummaries = new Array(state.chunks.length).fill('');
   const progressEl = document.getElementById('ai-progress');
   progressEl.innerHTML = state.chunks.map((c,i)=>`
@@ -1250,14 +1703,14 @@ async function runAIEvaluation(){
       <span class="hint" id="chunk-msg-${i}" style="margin:0 0 0 6px;"></span>
       <button class="small" style="margin-left:auto;display:none" id="chunk-retry-${i}" onclick="retryChunk(${i})">Reintentar</button>
     </div>`).join('')
-    + '<div class="toolbar"><button class="primary" onclick="runSynthesis()">Generar síntesis y dictamen final</button></div>';
+    + '<div class="toolbar"><button class="primary" onclick="runSynthesis()">Regenerar síntesis y dictamen final</button></div>';
 
   const isLocal = API_DEFAULTS[cfg.provider]?.local || isLocalEndpoint(cfg);
   try{
     for(let i=0;i<state.chunks.length;i++){
       await runOneChunk(i);
       if(!isLocal && i < state.chunks.length - 1){
-        await new Promise(r=>setTimeout(r, 2500)); // Pausa breve para respetar límites gratuitos por minuto
+        await new Promise(r=>setTimeout(r, 2500));
       }
     }
     await runSynthesis();
@@ -1266,23 +1719,33 @@ async function runAIEvaluation(){
   }
 }
 
-const SYSTEM_PROMPT_SYNTHESIS = `Eres el director doctoral que firma el dictamen final. A partir de los resúmenes por sección, la rúbrica y el conteo de hallazgos deterministas, redacta un dictamen breve y directo, sin diplomacia innecesaria, priorizando lo más importante a corregir.
+const SYSTEM_PROMPT_SYNTHESIS = `Eres investigador titular y director de tesis doctoral en Ciencias de la Educación que firma el dictamen. A partir de los resúmenes por sección evaluada, el alcance de revisión, la rúbrica y los hallazgos deterministas, redacta un dictamen ejecutivo riguroso y constructivo.
+
+Regla para revisiones parciales:
+- Si el alcance es parcial (ej. solo Capítulo 1 o secciones 3.2–3.5), evalúa únicamente los criterios pertinentes a ese alcance. En los criterios que correspondan a capítulos aún no revisados (como Conclusiones o Método si solo se revisó el Capítulo 1), coloca "puntosEstimados": null y justifica "Fuera del alcance de esta revisión parcial". En "totalEstimado", coloca null si se trata de una revisión parcial de pocos apartados o indica el estimado solo si la revisión cubre la totalidad de criterios.
 
 Responde ÚNICAMENTE con JSON válido, sin backticks, con esta forma exacta:
-{"dictamenBreve":"...","prioridades":["...","...","..."],"bandaPorCriterio":[{"criterio":"...","puntosEstimados":N,"justificacion":"..."}],"totalEstimado":N}
+{"dictamenBreve":"...","recomendacionAvance":"...","fortalezas":["..."],"prioridades":["..."],"bandaPorCriterio":[{"criterio":"...","puntosEstimados":N_o_null,"justificacion":"..."}],"totalEstimado":N_o_null}
 
-"dictamenBreve" máximo 80 palabras. "prioridades" son de 3 a 5 frases cortas con lo más importante a trabajar. "justificacion" máximo 20 palabras por criterio.`;
+- "dictamenBreve": valoración académica integral de máx. 90 palabras.
+- "recomendacionAvance": una frase clara (ej. "Avance aprobado con ajustes menores antes de continuar al siguiente capítulo" o "Requiere reelaboración teórico-metodológica antes de avanzar").
+- "fortalezas": 2 a 3 logros concretos del manuscrito revisado.
+- "prioridades": 3 a 5 acciones clave ordenadas por impacto en la defensa doctoral.
+- "justificacion": máx. 20 palabras por criterio.`;
 
 async function runSynthesis(){
   const rubricSummary = state.rubric.criteria.map(c=>`- ${c.name} (máx ${c.maxPoints} pts, ${c.isGate?'filtro':'compensable'})`).join('\n');
   const det = state.deterministic;
-  const detSummary = det ? `Citas sin referencia: ${det.citations.missing.length}. Anomalías de numeración: ${det.headingIssues.length}. Secciones vacías: ${det.emptySections.length}. Extensión: ${det.lengthCheck.status} (≈${det.lengthCheck.estPages} pp.). Valores estadísticos sospechosos: ${det.statSanity.length}.` : 'No se ejecutaron verificaciones deterministas.';
+  const detSummary = det ? `Citas sin referencia: ${det.citations.missing.length}. Anomalías de numeración: ${det.headingIssues.length}. Secciones vacías: ${det.emptySections.length}. Extensión del alcance: ≈${det.lengthCheck.estPages} pp. Valores estadísticos sospechosos: ${det.statSanity.length}.` : 'No se ejecutaron verificaciones deterministas.';
   const obsCounts = {critica:0,importante:0,sugerencia:0};
   state.observations.forEach(o=>obsCounts[o.severidad]++);
-  const userMsg = `RÚBRICA:\n${rubricSummary}\n\nHALLAZGOS DETERMINISTAS:\n${detSummary}\n\nOBSERVACIONES DE IA POR SEVERIDAD: crítica=${obsCounts.critica}, importante=${obsCounts.importante}, sugerencia=${obsCounts.sugerencia}\n\nRESÚMENES POR SECCIÓN:\n${(state.chunkSummaries||[]).filter(Boolean).join('\n')}`;
+  const isPartial = state.scope.mode!=='all' && state.doc.headings.length>0;
+  const scopeDesc = isPartial ? `REVISIÓN PARCIAL (solo ${formatScopeLabel(state.scope)})` : 'TESIS COMPLETA';
+
+  const userMsg = `ALCANCE DE ESTA REVISIÓN: ${scopeDesc}\n\nRÚBRICA:\n${rubricSummary}\n\nHALLAZGOS DETERMINISTAS:\n${detSummary}\n\nOBSERVACIONES DE IA POR SEVERIDAD: crítica=${obsCounts.critica}, importante=${obsCounts.importante}, sugerencia=${obsCounts.sugerencia}\n\nRESÚMENES POR SECCIÓN EVALUADA:\n${(state.chunkSummaries||[]).filter(Boolean).join('\n')}`;
 
   try{
-    const raw = await callLLM(SYSTEM_PROMPT_SYNTHESIS, userMsg, 1500);
+    const raw = await callLLM(SYSTEM_PROMPT_SYNTHESIS, userMsg, 1800);
     state.synthesis = parseJsonLoose(raw);
   }catch(err){
     console.error(err);
@@ -1292,71 +1755,191 @@ async function runSynthesis(){
 }
 
 /* ============================================================
-   RENDER DEL DICTAMEN
+   RENDER DE LOS 3 TIPOS DE DICTAMEN
    ============================================================ */
 const SEV_ORDER = {critica:0, importante:1, sugerencia:2};
 const SEV_LABEL = {critica:'Crítica', importante:'Importante', sugerencia:'Sugerencia'};
 let activeFilters = new Set(['critica','importante','sugerencia']);
+
+function setDictamenView(v){
+  state.dictamenView = v;
+  renderDictamen();
+}
 
 function toggleFilter(sev, checked){
   if(checked) activeFilters.add(sev); else activeFilters.delete(sev);
   renderDictamen();
 }
 
+function getSortedFilteredObs(){
+  return [...state.observations]
+    .filter(o=>activeFilters.has(o.severidad))
+    .sort((a,b)=> (a.seccion>b.seccion?1:-1) || (SEV_ORDER[a.severidad]-SEV_ORDER[b.severidad]));
+}
+
+function renderFilterBar(){
+  return `<div class="filters">
+    <strong style="font-size:12px;color:var(--ink-muted);">Filtrar severidad:</strong>
+    <label><input type="checkbox" ${activeFilters.has('critica')?'checked':''} onchange="toggleFilter('critica',this.checked)"> Crítica (${state.observations.filter(o=>o.severidad==='critica').length})</label>
+    <label><input type="checkbox" ${activeFilters.has('importante')?'checked':''} onchange="toggleFilter('importante',this.checked)"> Importante (${state.observations.filter(o=>o.severidad==='importante').length})</label>
+    <label><input type="checkbox" ${activeFilters.has('sugerencia')?'checked':''} onchange="toggleFilter('sugerencia',this.checked)"> Sugerencia (${state.observations.filter(o=>o.severidad==='sugerencia').length})</label>
+  </div>`;
+}
+
+function renderSynthesisCard(){
+  if(state.synthesis && state.synthesis.error){
+    return `<div class="card"><p class="hint">No se pudo generar la síntesis final (${escapeHtml(state.synthesis.error)}).</p></div>`;
+  }
+  if(!state.synthesis) return '';
+  const s = state.synthesis;
+  const obsC = {
+    critica: state.observations.filter(o=>o.severidad==='critica').length,
+    importante: state.observations.filter(o=>o.severidad==='importante').length,
+    sugerencia: state.observations.filter(o=>o.severidad==='sugerencia').length
+  };
+  return `<div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;">
+      <div>
+        <h3>Dictamen del director de tesis — Ciencias de la Educación</h3>
+        <p class="hint">${state.studentName?'Alumno: <strong>'+escapeHtml(state.studentName)+'</strong> · ':''}Alcance evaluado: <strong>${escapeHtml(formatScopeLabel(state.scope))}</strong> · Hallazgos: ${obsC.critica} críticas, ${obsC.importante} importantes, ${obsC.sugerencia} sugerencias.</p>
+      </div>
+      ${s.totalEstimado!=null?`<div class="score-total">${s.totalEstimado} <span style="font-size:13px;color:var(--ink-muted);font-family:var(--font-sans);">/ 100 pts. est.</span></div>`:`<span class="badge scope">Revisión parcial de avance</span>`}
+    </div>
+
+    ${s.recomendacionAvance?`<div class="info-box" style="margin:10px 0;"><strong>Resolución de avance:</strong> ${escapeHtml(s.recomendacionAvance)}</div>`:''}
+
+    <p>${escapeHtml(s.dictamenBreve||'')}</p>
+
+    ${s.fortalezas && s.fortalezas.length?`<p class="muted" style="margin-top:12px;"><strong>Fortalezas identificadas</strong></p><ul>${s.fortalezas.map(f=>`<li>${escapeHtml(f)}</li>`).join('')}</ul>`:''}
+
+    ${s.prioridades && s.prioridades.length?`<p class="muted" style="margin-top:12px;"><strong>Prioridades inmediatas de corrección</strong></p><ol>${s.prioridades.map(p=>`<li>${escapeHtml(p)}</li>`).join('')}</ol>`:''}
+
+    ${s.bandaPorCriterio && s.bandaPorCriterio.length?`<table style="margin-top:12px;"><thead><tr><th>Criterio de rúbrica</th><th>Puntos est.</th><th>Valoración</th></tr></thead><tbody>${
+      s.bandaPorCriterio.map(b=>`<tr><td>${escapeHtml(b.criterio)}</td><td>${b.puntosEstimados==null?'<span class="hint">N/A (parcial)</span>':b.puntosEstimados}</td><td>${escapeHtml(b.justificacion||'')}</td></tr>`).join('')
+    }</tbody></table>`:''}
+  </div>`;
+}
+
+function renderActionTableCard(){
+  const sorted = getSortedFilteredObs();
+  return `<div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
+      <h3>Tabla operativa de hallazgos y correcciones (${sorted.length})</h3>
+      <button class="small no-print" onclick="exportTableCSV()">📥 Descargar CSV (Excel)</button>
+    </div>
+    ${renderFilterBar()}
+    ${!sorted.length ? '<p class="muted">Sin observaciones para los filtros activos.</p>' : `
+    <table class="action-table">
+      <thead>
+        <tr>
+          <th style="width:14%">Sección / Pág.</th>
+          <th style="width:10%">Severidad</th>
+          <th style="width:28%">Error o hallazgo detectado</th>
+          <th style="width:24%">Sugerencia de mejora</th>
+          <th style="width:24%">Acción y corrección a implementar</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${sorted.map(o=>`
+          <tr>
+            <td>
+              <span class="ref">${escapeHtml(o.seccion)}</span>
+              ${o.anchor?`<br><span class="anchor">${escapeHtml(o.anchor)}</span>`:''}
+            </td>
+            <td><span class="sev-pill ${o.severidad}">${SEV_LABEL[o.severidad]}</span></td>
+            <td>
+              ${escapeHtml(o.comentario)}
+              ${o.cita?`<div class="quote-mini">"${escapeHtml(o.cita)}"</div>`:''}
+            </td>
+            <td>${escapeHtml(o.mejora||'—')}</td>
+            <td><strong>${escapeHtml(o.accion||o.mejora||'—')}</strong></td>
+          </tr>`).join('')}
+      </tbody>
+    </table>`}
+  </div>`;
+}
+
 function renderDictamen(){
   const box = document.getElementById('dictamen-output');
-  let html = '';
-
-  if(state.synthesis && !state.synthesis.error){
-    const s = state.synthesis;
-    html += `<div class="card">
-      <h3>Dictamen breve</h3>
-      <p>${escapeHtml(s.dictamenBreve||'')}</p>
-      ${s.prioridades && s.prioridades.length?'<p class="muted" style="margin-top:10px;"><strong>Prioridades</strong></p><ol>'+s.prioridades.map(p=>`<li>${escapeHtml(p)}</li>`).join('')+'</ol>':''}
-      ${s.totalEstimado!=null?`<p class="score-total">${s.totalEstimado} <span style="font-size:14px;color:var(--ink-muted);font-family:var(--font-sans);">/ 100 pts. estimados</span></p>`:''}
-      ${s.bandaPorCriterio && s.bandaPorCriterio.length?'<table><thead><tr><th>Criterio</th><th>Puntos est.</th><th>Justificación</th></tr></thead><tbody>'+
-        s.bandaPorCriterio.map(b=>`<tr><td>${escapeHtml(b.criterio)}</td><td>${b.puntosEstimados}</td><td>${escapeHtml(b.justificacion||'')}</td></tr>`).join('')+'</tbody></table>':''}
-    </div>`;
-  } else if(state.synthesis && state.synthesis.error){
-    html += `<div class="card"><p class="hint">No se pudo generar la síntesis final (${escapeHtml(state.synthesis.error)}). Revisa los fragmentos con error e inténtalo de nuevo.</p></div>`;
+  if(!state.synthesis && !state.observations.length){
+    box.innerHTML = '<p class="muted">Aún no se ha generado una evaluación con IA. Configura el alcance arriba y pulsa "Generar dictamen con IA".</p>';
+    return;
   }
 
-  if(state.observations.length){
-    html += `<div class="card">
-      <h3>Observaciones (${state.observations.length})</h3>
-      <div class="filters">
-        <label><input type="checkbox" ${activeFilters.has('critica')?'checked':''} onchange="toggleFilter('critica',this.checked)"> Crítica (${state.observations.filter(o=>o.severidad==='critica').length})</label>
-        <label><input type="checkbox" ${activeFilters.has('importante')?'checked':''} onchange="toggleFilter('importante',this.checked)"> Importante (${state.observations.filter(o=>o.severidad==='importante').length})</label>
-        <label><input type="checkbox" ${activeFilters.has('sugerencia')?'checked':''} onchange="toggleFilter('sugerencia',this.checked)"> Sugerencia (${state.observations.filter(o=>o.severidad==='sugerencia').length})</label>
-      </div>
-      ${renderObservationList()}
+  const count = state.observations.length;
+  const viewLabel = {
+    ejecutivo: 'Dictamen Ejecutivo',
+    tabla: 'Tabla de Acción y Corrección',
+    completo: 'Dictamen Completo'
+  }[state.dictamenView];
+
+  const printHeaderHtml = `
+    <div class="print-header">
+      <h2 style="margin:0 0 4px;">Dictamen de revisión doctoral por Dr. J. Adrián Cerda</h2>
+      <span class="muted"><strong>${escapeHtml(viewLabel)}</strong>${state.studentName?' · Alumno: '+escapeHtml(state.studentName):''} · Documento: ${escapeHtml(state.doc?state.doc.name:'')} · Alcance: ${escapeHtml(formatScopeLabel(state.scope))}</span>
     </div>`;
 
-    html += `<div class="card">
-      <h3>Documento anotado</h3>
-      <p class="hint">Cada párrafo lleva una línea de referencia ¶N · p.X. Las citas resaltadas son coincidencias de texto entre la observación y el documento.</p>
-      ${renderAnnotatedDocument()}
+  const tabsHtml = `
+    <div class="view-tabs no-print">
+      <button class="${state.dictamenView==='ejecutivo'?'active':''}" onclick="setDictamenView('ejecutivo')">📋 Dictamen Ejecutivo</button>
+      <button class="${state.dictamenView==='tabla'?'active':''}" onclick="setDictamenView('tabla')">📊 Tabla de Acción y Corrección (${count})</button>
+      <button class="${state.dictamenView==='completo'?'active':''}" onclick="setDictamenView('completo')">📑 Dictamen Completo (${count})</button>
     </div>`;
+
+  let bodyHtml = '';
+
+  if(state.dictamenView==='ejecutivo'){
+    bodyHtml += printHeaderHtml;
+    bodyHtml += renderSynthesisCard();
+    if(!state.synthesis && count){
+      bodyHtml += '<p class="hint">Generando síntesis ejecutiva… mientras tanto puedes consultar la pestaña "Tabla de Acción y Corrección".</p>';
+    }
+  } else if(state.dictamenView==='tabla'){
+    // La tabla inicia directamente con numeración arábiga (1, 2, 3...)
+    bodyHtml += `<div class="obs-section-direct">
+      ${printHeaderHtml}
+      ${renderActionTableCard()}
+    </div>`;
+  } else {
+    // Dictamen Completo: primeras páginas en romanos (i, ii...) y Observaciones en página nueva con arábigos (1, 2...)
+    bodyHtml += printHeaderHtml;
+    bodyHtml += renderSynthesisCard();
+    if(count){
+      bodyHtml += `<div class="obs-section-print">
+        <div class="card">
+          <h3>Observaciones detalladas por sección (${count})</h3>
+          ${renderFilterBar()}
+          ${renderObservationList()}
+        </div>
+        ${renderActionTableCard()}
+        <div class="card">
+          <h3>Manuscrito anotado (alcance revisado: ${escapeHtml(formatScopeLabel(state.scope))})</h3>
+          <p class="hint">Cada párrafo lleva su referencia ¶N · p.X. Solo se muestra el contenido incluido en el alcance revisado.</p>
+          ${renderAnnotatedDocument()}
+        </div>
+      </div>`;
+    }
   }
 
-  box.innerHTML = html || '<p class="muted">Aún no se ha generado una evaluación con IA.</p>';
+  box.innerHTML = tabsHtml + bodyHtml;
 }
 
 function renderObservationList(){
-  const sorted = [...state.observations].filter(o=>activeFilters.has(o.severidad))
-    .sort((a,b)=> (a.seccion>b.seccion?1:-1) || (SEV_ORDER[a.severidad]-SEV_ORDER[b.severidad]));
+  const sorted = getSortedFilteredObs();
   if(!sorted.length) return '<p class="muted">Sin observaciones para los filtros activos.</p>';
   return sorted.map(o=>`
     <div class="obs-card ${o.severidad}">
       <span class="sev-tag">${SEV_LABEL[o.severidad]}</span> <span class="ref">${escapeHtml(o.seccion)}</span>${o.anchor?` <span class="anchor">${escapeHtml(o.anchor)}</span>`:''}
       ${o.cita?`<blockquote>"${escapeHtml(o.cita)}"</blockquote>`:''}
-      <p>${escapeHtml(o.comentario)}</p>
-      ${o.mejora?`<p><strong>Mejora sugerida:</strong> ${escapeHtml(o.mejora)}</p>`:''}
+      <p><strong>Hallazgo:</strong> ${escapeHtml(o.comentario)}</p>
+      ${o.mejora?`<p><strong>Sugerencia de mejora:</strong> ${escapeHtml(o.mejora)}</p>`:''}
+      ${o.accion?`<p><strong>Acción a implementar:</strong> ${escapeHtml(o.accion)}</p>`:''}
     </div>`).join('');
 }
 
 function renderAnnotatedDocument(){
   if(!state.doc) return '';
+  const scopedParas = getScopedParagraphs(state.scope);
   const byParagraph = {};
   state.observations.filter(o=>activeFilters.has(o.severidad)).forEach(o=>{
     if(o.matchedParagraphId!=null){
@@ -1364,7 +1947,7 @@ function renderAnnotatedDocument(){
     }
   });
   let html = '';
-  state.doc.paragraphs.forEach(p=>{
+  scopedParas.forEach(p=>{
     if(!p.text) return;
     const anchor = `<span class="anchor">${paragraphAnchor(p)}</span> `;
     if(p.isHeading){
@@ -1384,7 +1967,7 @@ function renderAnnotatedDocument(){
       });
       html += `<p class="doc-paragraph">${anchor}${text}</p>`;
       obsHere.forEach(o=>{
-        html += `<div class="obs-card ${o.severidad}"><span class="sev-tag">${SEV_LABEL[o.severidad]}</span> <span class="anchor">${escapeHtml(o.anchor||paragraphAnchor(p))}</span> ${escapeHtml(o.comentario)}${o.mejora?'<br><strong>Mejora:</strong> '+escapeHtml(o.mejora):''}</div>`;
+        html += `<div class="obs-card ${o.severidad}"><span class="sev-tag">${SEV_LABEL[o.severidad]}</span> <span class="anchor">${escapeHtml(o.anchor||paragraphAnchor(p))}</span> ${escapeHtml(o.comentario)}${o.accion?'<br><strong>Acción:</strong> '+escapeHtml(o.accion):''}</div>`;
       });
     } else {
       html += `<p class="doc-paragraph">${anchor}${escapeHtml(p.text)}</p>`;
@@ -1393,9 +1976,36 @@ function renderAnnotatedDocument(){
   return html;
 }
 
+function csvCell(v){
+  return '"' + String(v==null?'':v).replace(/"/g,'""') + '"';
+}
+
+function exportTableCSV(){
+  const sorted = getSortedFilteredObs();
+  if(!sorted.length){ alert('No hay observaciones para exportar.'); return; }
+  const headers = ['Sección','Página / Párrafo','Severidad','Cita textual','Error o hallazgo detectado','Sugerencia de mejora','Acción y corrección a implementar'];
+  const rows = sorted.map(o=>[
+    o.seccion,
+    o.anchor||'',
+    SEV_LABEL[o.severidad],
+    o.cita||'',
+    o.comentario||'',
+    o.mejora||'',
+    o.accion||o.mejora||''
+  ].map(csvCell).join(','));
+  const csvContent = '\uFEFF' + [headers.map(csvCell).join(','), ...rows].join('\r\n');
+  const blob = new Blob([csvContent], {type:'text/csv;charset=utf-8;'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = buildRevisionBaseName() + '.csv';
+  a.click();
+}
+
 function exportDictamenJSON(){
   const data = {
+    alumno: state.studentName || null,
     documento: state.doc ? state.doc.name : null,
+    alcanceEvaluado: formatScopeLabel(state.scope),
     rubrica: state.rubric.title,
     generadoEn: new Date().toISOString(),
     sintesis: state.synthesis,
@@ -1405,7 +2015,7 @@ function exportDictamenJSON(){
   const blob = new Blob([JSON.stringify(data,null,2)], {type:'application/json'});
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
-  a.download = 'dictamen.json';
+  a.download = buildRevisionBaseName() + '.json';
   a.click();
 }
 
@@ -1414,6 +2024,7 @@ function exportDictamenJSON(){
    ============================================================ */
 loadApiConfigUI();
 renderRubric();
+updateFilenamePreview();
 </script>
 </body>
 </html>
