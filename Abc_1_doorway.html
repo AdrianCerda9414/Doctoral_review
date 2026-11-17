@@ -47,7 +47,7 @@ nav.stepper li.active .label{color:var(--ink);font-weight:500;}
 main{flex:1;padding:28px 32px;min-width:0;}
 section.panel{display:none;}
 section.panel.active{display:block;}
-.toolbar{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0;}
+.toolbar{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0;align-items:center;}
 button{font-family:var(--font-sans);font-size:13px;padding:8px 14px;border-radius:var(--radius);border:1px solid var(--border-strong);background:var(--surface);color:var(--ink);cursor:pointer;}
 button:hover{border-color:var(--accent);}
 button.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);}
@@ -63,7 +63,9 @@ th{color:var(--ink-muted);font-weight:500;font-size:12px;}
 .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px 18px;margin-bottom:14px;}
 .muted{color:var(--ink-muted);font-size:13px;}
 .hint{color:var(--ink-faint);font-size:12px;margin-top:4px;}
-.badge{display:inline-block;font-size:11px;padding:1px 7px;border-radius:20px;border:1px solid var(--border-strong);color:var(--ink-muted);}
+.badge{display:inline-block;font-size:11px;padding:2px 8px;border-radius:20px;border:1px solid var(--border-strong);color:var(--ink-muted);}
+.badge.ok{background:var(--ok-bg);border-color:var(--ok);color:var(--ok);}
+.badge.warn{background:var(--sev-importante-bg);border-color:var(--sev-importante);color:var(--sev-importante);}
 .dropzone{border:1px dashed var(--border-strong);border-radius:var(--radius);padding:34px 20px;text-align:center;color:var(--ink-muted);background:var(--surface);}
 .dropzone.drag{border-color:var(--accent);color:var(--accent);}
 .ref{font-family:var(--font-mono);font-size:12px;color:var(--ink-muted);}
@@ -72,7 +74,7 @@ th{color:var(--ink-muted);font-weight:500;font-size:12px;}
 .crit-head{display:flex;justify-content:space-between;align-items:center;padding:9px 12px;background:var(--surface-2);}
 .crit-body{padding:10px 12px;}
 .bands-table td,.bands-table th{padding:5px 6px;}
-.progress-row{display:flex;align-items:center;gap:10px;padding:6px 0;font-size:13px;border-bottom:1px solid var(--border);}
+.progress-row{display:flex;align-items:center;gap:10px;padding:6px 0;font-size:13px;border-bottom:1px solid var(--border);flex-wrap:wrap;}
 .progress-row:last-child{border-bottom:none;}
 .status-dot{width:9px;height:9px;border-radius:50%;flex:0 0 9px;background:var(--border-strong);}
 .status-dot.ok{background:var(--ok);}
@@ -127,6 +129,7 @@ details.help table{font-size:12px;}
   <h1>Dictamen con rúbrica — Ciencias de la Educación</h1>
   <div class="toolbar" style="margin:10px 0 0;">
     <button class="small" onclick="openApiDialog()">⚙ Motor de IA</button>
+    <span id="api-status-badge" class="badge warn">Sin configurar (requiere API gratuita o local)</span>
   </div>
 </header>
 
@@ -205,7 +208,7 @@ details.help table{font-size:12px;}
     <!-- PANEL 3: VERIFICACIÓN DETERMINISTA -->
     <section class="panel" id="panel-3">
       <h2>3. Verificaciones deterministas</h2>
-      <div class="info-box">Estas verificaciones se calculan con reglas de texto (expresiones regulares), no con IA. Son <strong>candidatos a revisar</strong>, no errores confirmados — la coincidencia de nombres de autor y numeración de secciones es heurística.</div>
+      <div class="info-box">Estas verificaciones se calculan con reglas de texto (expresiones regulares), no con IA ni conexión a internet. Son <strong>candidatos a revisar</strong>, no errores confirmados.</div>
       <div class="toolbar">
         <button class="primary" onclick="runDeterministicChecks()">Ejecutar verificaciones</button>
       </div>
@@ -223,14 +226,14 @@ details.help table{font-size:12px;}
 
       <div class="card">
         <h3>Motor de IA</h3>
-        <p class="muted">La evaluación del documento y la conversión de rúbricas desde PDF/DOCX usan el motor configurado (gratuito con cuenta, local sin internet, o de pago).</p>
+        <p class="muted">La evaluación del documento y la conversión de rúbricas usan el motor configurado (gratuito con cuenta como Groq, Google AI Studio o OpenRouter, o local sin internet con Ollama).</p>
         <div class="toolbar" style="margin:0;">
           <button onclick="openApiDialog()">Abrir configuración del motor de IA</button>
         </div>
       </div>
 
       <div class="toolbar">
-        <button class="primary" onclick="runAIEvaluation()">Generar dictamen con IA</button>
+        <button class="primary" id="btn-run-ai" onclick="runAIEvaluation()">Generar dictamen con IA</button>
         <button onclick="window.print()">Imprimir / Exportar PDF</button>
         <button onclick="exportDictamenJSON()">Exportar dictamen (JSON)</button>
       </div>
@@ -244,21 +247,21 @@ details.help table{font-size:12px;}
   </main>
 </div>
 
-<!-- DIÁLOGO DE CONFIGURACIÓN DEL MOTOR DE IA (accesible desde cualquier paso) -->
+<!-- DIÁLOGO DE CONFIGURACIÓN DEL MOTOR DE IA -->
 <dialog id="api-config-dialog">
-  <h3>Configuración del motor de IA</h3>
+  <h3>Configuración del motor de IA (opciones gratuitas disponibles)</h3>
   <p class="hint" id="api-dialog-reason"></p>
   <div class="config-row">
     <div class="field">
       <label for="cfg-provider">Proveedor</label>
       <select id="cfg-provider" onchange="onProviderChange()">
-        <optgroup label="Gratuitos (creando cuenta)">
-          <option value="gemini">Google AI Studio (Gemini) — recomendado</option>
-          <option value="groq">Groq (Llama)</option>
-          <option value="openrouter">OpenRouter (modelos :free)</option>
+        <optgroup label="Gratuitos (creando cuenta, sin tarjeta)">
+          <option value="groq">Groq (Llama 3.3 70B) — muy rápido y directo</option>
+          <option value="gemini">Google AI Studio (Gemini 3.5 Flash-Lite)</option>
+          <option value="openrouter">OpenRouter (enrutador :free)</option>
           <option value="zai">GLM (Z.ai)</option>
         </optgroup>
-        <optgroup label="Locales (sin clave ni internet)">
+        <optgroup label="Locales (100% gratis, sin clave ni internet)">
           <option value="ollama">Ollama</option>
           <option value="lmstudio">LM Studio</option>
         </optgroup>
@@ -273,7 +276,7 @@ details.help table{font-size:12px;}
     </div>
     <div class="field">
       <label for="cfg-model">Modelo</label>
-      <input type="text" id="cfg-model" style="width:100%" placeholder="nombre exacto del modelo (ej. gemini-2.5-flash, qwen2.5:7b)">
+      <input type="text" id="cfg-model" style="width:100%" placeholder="nombre exacto del modelo">
     </div>
   </div>
   <div class="field">
@@ -288,24 +291,22 @@ details.help table{font-size:12px;}
     <input type="checkbox" id="cfg-remember" checked> Guardar configuración y clave en este navegador (localStorage)
   </label>
   <div class="toolbar" style="margin:0;">
-    <button onclick="testApiConnection()">Probar conexión</button>
-    <button onclick="closeApiDialog()">Cerrar</button>
+    <button class="primary" onclick="testApiConnection()">Probar conexión</button>
+    <button onclick="closeApiDialog()">Guardar y cerrar</button>
     <span class="hint" id="cfg-status"></span>
   </div>
-  <details class="help">
-    <summary>¿Dónde consigo una clave gratuita? / ¿Cómo activo Ollama o LM Studio?</summary>
+  <details class="help" open>
+    <summary>¿Cómo consigo una clave gratuita en 2 minutos? / ¿Cómo uso Ollama?</summary>
     <table>
-      <tr><th>Proveedor</th><th>Cómo empezar</th></tr>
-      <tr><td>Google AI Studio (Gemini)</td><td>Entra en <span class="ref">aistudio.google.com</span> con tu cuenta Google → "Get API key". Generosa capa gratuita, buen español.</td></tr>
-      <tr><td>Groq</td><td>Regístrate en <span class="ref">console.groq.com</span> → API Keys → Create API Key.</td></tr>
-      <tr><td>OpenRouter</td><td>Cuenta en <span class="ref">openrouter.ai</span> → Keys. En su catálogo, elige un modelo cuyo nombre termine en <span class="ref">:free</span> y ponlo en el campo Modelo.</td></tr>
-      <tr><td>GLM (Z.ai)</td><td>Cuenta en <span class="ref">z.ai</span> → plataforma de API. Verifica qué modelos tiene habilitados tu plan/región y ajusta el nombre en el campo Modelo.</td></tr>
-      <tr><td>Ollama</td><td>Instala desde <span class="ref">ollama.com</span>, luego en terminal: <span class="ref">ollama pull qwen2.5:7b</span> y <span class="ref">ollama serve</span>. Si "Probar conexión" da error 403, arranca Ollama permitiendo el origen: en Windows <span class="ref">set OLLAMA_ORIGINS=*</span> antes de ejecutarlo; en macOS <span class="ref">launchctl setenv OLLAMA_ORIGINS "*"</span>; en Linux, añade <span class="ref">Environment="OLLAMA_ORIGINS=*"</span> al servicio. La API key no es necesaria.</td></tr>
-      <tr><td>LM Studio</td><td>Descarga el modelo desde su catálogo, ve a la pestaña "Developer / Local Server" → Start (puerto 1234) y activa "Enable CORS"/"Serve on local network" si lo pide. En el campo Modelo escribe el id exacto del modelo descargado. La API key no es necesaria.</td></tr>
+      <tr><th>Proveedor</th><th>Cómo empezar gratis</th></tr>
+      <tr><td>Groq (Recomendado)</td><td>Entra a <span class="ref">console.groq.com</span> con tu correo Google/GitHub → <b>API Keys → Create API Key</b>. Pégala arriba.</td></tr>
+      <tr><td>Google AI Studio</td><td>Entra a <span class="ref">aistudio.google.com</span> con tu cuenta Google → <b>Get API key</b>. Si el modelo <span class="ref">gemini-3.5-flash-lite</span> da error en tu región, prueba <span class="ref">gemini-2.5-flash</span> o <span class="ref">gemini-3.8-flash</span>.</td></tr>
+      <tr><td>OpenRouter</td><td>Cuenta en <span class="ref">openrouter.ai</span> → <b>Keys</b>. El modelo <span class="ref">openrouter/free</span> elige automáticamente un modelo gratuito disponible (hasta 50 req/día sin tarjeta).</td></tr>
+      <tr><td>Ollama (sin internet)</td><td>Instala desde <span class="ref">ollama.com</span>, luego en terminal: <span class="ref">ollama pull qwen2.5:7b</span>. Si da error 403 al probar, arráncalo en Windows con <span class="ref">set OLLAMA_ORIGINS=* && ollama serve</span> (macOS: <span class="ref">launchctl setenv OLLAMA_ORIGINS "*"</span>). No necesita API key.</td></tr>
+      <tr><td>LM Studio (sin internet)</td><td>Descarga un modelo, ve a <b>Developer / Local Server → Start</b> y activa <b>Enable CORS</b>. Escribe el ID del modelo arriba. No necesita API key.</td></tr>
     </table>
-    <p class="hint">Los endpoints locales (Ollama, LM Studio) no envían tu tesis a internet: todo se procesa en tu computadora. Los gratuitos con cuenta sí envían el texto al proveedor.</p>
+    <p class="hint">Si abres este HTML directamente como archivo local (<span class="ref">file://</span>) y algún proveedor da error de red/CORS, sirve la carpeta en terminal con <span class="ref">python -m http.server 8080</span> y abre <span class="ref">http://localhost:8080/dictamen.html</span>.</p>
   </details>
-  <p class="hint">Nota de seguridad: en un navegador la clave es visible en la pestaña de Red. Para un despliegue compartido con varias personas, usa la opción "proxy propio" (una función serverless que guarda la clave en el servidor). Algunos proveedores bloquean llamadas directas desde navegador (CORS): si la prueba falla por eso, prueba con otro proveedor de la lista o con un proxy.</p>
 </dialog>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.4.2/mammoth.browser.min.js"></script>
@@ -324,10 +325,11 @@ if (window.pdfjsLib) {
    ============================================================ */
 const state = {
   rubric: { title:'', instructedPages:{min:null,max:null}, criteria:[] },
-  doc: null,          // {name, paragraphs:[{id,text,sectionRef,isHeading,page,estPage}], headings:[{ref,text,idx}], wordCount, estPages, pages}
-  deterministic: null,// {citations:[], headingIssues:[], emptySections:[], lengthCheck:{}, statSanity:[]}
+  doc: null,
+  deterministic: null,
   chunks: [],
-  observations: [],   // {chunkRef, seccion, severidad, cita, comentario, mejora, matchedParagraphId, anchor}
+  chunkSummaries: [],
+  observations: [],
   synthesis: null,
   step: 1
 };
@@ -355,7 +357,7 @@ document.querySelectorAll('#stepper-list li').forEach(li=>{
 });
 
 /* ============================================================
-   RÚBRICA — modelo por defecto (Rúbrica 4.1, precargada como ejemplo editable)
+   RÚBRICA
    ============================================================ */
 const DEFAULT_RUBRIC = {
   title: 'Rúbrica 4.1 — Integración planteamiento del problema, marco teórico y propuesta de método',
@@ -495,7 +497,7 @@ function importRubricJSON(file){
 }
 
 /* ============================================================
-   IMPORTAR RÚBRICA DESDE PDF/DOCX — extracción + conversión con IA
+   IMPORTAR RÚBRICA DESDE PDF/DOCX CON IA
    ============================================================ */
 const SYSTEM_PROMPT_RUBRIC_IMPORT = `Convierte la rúbrica de evaluación entregada en texto (proveniente de un PDF o DOCX; las tablas llegan como filas con celdas separadas por " | ") a un JSON válido, sin texto adicional ni backticks, con esta forma exacta:
 {"title":"...","instructedPages":{"min":N_o_null,"max":N_o_null},"criteria":[{"id":"...","name":"...","isGate":false,"maxPoints":N,"bands":[{"min":N,"desc":"..."}]}]}
@@ -511,13 +513,12 @@ Reglas:
 async function extractRubricText(file){
   const name = file.name.toLowerCase();
   if(name.endsWith('.docx')){
+    if(typeof mammoth==='undefined') throw new Error('La librería para leer DOCX no cargó (revisa tu conexión a internet).');
     const arrayBuffer = await file.arrayBuffer();
     const result = await mammoth.convertToHtml({arrayBuffer});
     const div = document.createElement('div');
     div.innerHTML = result.value;
     const lines = [];
-    // Los párrafos fuera de tablas van como líneas normales; las filas de tabla
-    // como "celda | celda | ..." para que la IA conserve la estructura.
     div.querySelectorAll('p,h1,h2,h3,h4,h5,h6,li,tr').forEach(el=>{
       if(el.tagName==='TR'){
         const cells = [...el.children].map(td=>td.textContent.replace(/\s+/g,' ').trim()).filter(Boolean);
@@ -572,7 +573,7 @@ async function importRubricWithAI(file){
   statusEl.textContent = '';
   const cfg = readApiConfigInputs();
   if(!apiConfigReady(cfg)){
-    openApiDialog('Para convertir una rúbrica desde PDF/DOCX se necesita el motor de IA. Configúralo aquí (y prueba la conexión) y vuelve a pulsar "Importar rúbrica desde PDF/DOCX (IA)".');
+    openApiDialog('Para convertir una rúbrica desde PDF/DOCX se necesita configurar un motor de IA gratuito o local.');
     return;
   }
   try{
@@ -582,12 +583,12 @@ async function importRubricWithAI(file){
     const MAXR = 20000;
     const clipped = text.length>MAXR;
     statusEl.textContent = 'Convirtiendo rúbrica con IA ('+text.length.toLocaleString('es')+' caracteres)…';
-    const raw = await callLLM(SYSTEM_PROMPT_RUBRIC_IMPORT, 'RÚBRICA EN TEXTO:\n\n'+text.slice(0,MAXR), 4000);
+    const raw = await callLLM(SYSTEM_PROMPT_RUBRIC_IMPORT, 'RÚBRICA EN TEXTO:\n\n'+text.slice(0,MAXR), 4000, msg=>{ statusEl.textContent=msg; });
     const parsed = parseJsonLoose(raw);
     state.rubric = normalizeRubric(parsed);
     renderRubric();
-    statusEl.textContent = 'Rúbrica convertida y cargada: '+state.rubric.criteria.length+' criterio(s). Revísala abajo — nombres, puntajes y bandas — y corrige lo que haga falta antes de continuar. Cuando esté conforme, usa "Exportar JSON" para guardarla y reutilizarla.'
-      +(clipped?' (Aviso: el texto se truncó a '+MAXR.toLocaleString('es')+' caracteres; verifica que no falte ningún criterio.)':'');
+    statusEl.textContent = 'Rúbrica convertida: '+state.rubric.criteria.length+' criterio(s). Revisa y corrige si hace falta; puedes guardarla con "Exportar JSON".'
+      +(clipped?' (Aviso: texto truncado a '+MAXR.toLocaleString('es')+' caracteres.)':'');
   }catch(err){
     console.error(err);
     statusEl.textContent = 'Error al importar la rúbrica: '+err.message;
@@ -629,7 +630,6 @@ async function handleFileUpload(file){
     }
     const {paragraphs, headings} = detectHeadingsAndParagraphs(parsed.paras);
     const wordCount = paragraphs.map(p=>p.text).join(' ').split(/\s+/).filter(Boolean).length;
-    // Página real (PDF) o estimada por conteo de palabras acumulado (DOCX) — para las líneas de referencia
     let running = 0;
     paragraphs.forEach(p=>{
       running += p.text.split(/\s+/).filter(Boolean).length;
@@ -650,6 +650,7 @@ async function handleFileUpload(file){
 }
 
 async function parseDocx(file){
+  if(typeof mammoth==='undefined') throw new Error('No se pudo cargar mammoth.js (se requiere internet la primera vez para leer .docx).');
   const arrayBuffer = await file.arrayBuffer();
   const result = await mammoth.convertToHtml({arrayBuffer});
   const div = document.createElement('div');
@@ -663,13 +664,13 @@ async function parseDocx(file){
 }
 
 async function parsePdf(file){
+  if(typeof pdfjsLib==='undefined') throw new Error('No se pudo cargar pdf.js (se requiere internet la primera vez para leer .pdf).');
   const arrayBuffer = await file.arrayBuffer();
   const pdf = await pdfjsLib.getDocument({data:arrayBuffer}).promise;
   const paras = [];
   for(let i=1;i<=pdf.numPages;i++){
     const page = await pdf.getPage(i);
     const content = await page.getTextContent();
-    // agrupar por línea aproximada usando la coordenada y
     let lines = {};
     content.items.forEach(it=>{
       const y = Math.round(it.transform[5]);
@@ -691,7 +692,6 @@ function detectHeadingsAndParagraphs(rawParas){
   const headings = [];
   let lastRef = null;
   rawParas.forEach((raw,i)=>{
-    // por seguridad, eliminar cualquier marcador de página heredado del texto
     const text = String(raw.text||'').replace(/\s*⟦p\.\d+⟧\s*$/,'').trim();
     const m = text.match(headingRe);
     let isHeading = false;
@@ -713,7 +713,7 @@ function renderDocPreview(){
     <div class="card">
       <p><strong>${escapeHtml(d.name)}</strong> — ${d.wordCount.toLocaleString('es')} palabras · ${d.pages ? d.pages+' páginas (PDF)' : '≈ '+d.estPages+' pp. estimadas'} · ${d.paragraphs.length} párrafos (¶)</p>
       <p class="muted">${d.headings.length} encabezados numerados detectados. Cada párrafo tiene una línea de referencia ¶N (y página) usada por el dictamen.</p>
-      ${weak?'<p class="hint">Se detectaron pocos encabezados numerados: la numeración podría no seguir el patrón "1.2.3" o el documento usa estilos de Word en vez de numeración escrita. Las verificaciones de numeración y secciones vacías serán poco confiables en este caso.</p>':''}
+      ${weak?'<p class="hint">Se detectaron pocos encabezados numerados: la numeración podría no seguir el patrón "1.2.3" o usar estilos de Word.</p>':''}
       <details><summary style="cursor:pointer;color:var(--ink-muted);font-size:13px;">Ver índice detectado</summary>
         <table>${d.headings.map(h=>`<tr><td class="ref">§${escapeHtml(h.ref)}</td><td>${escapeHtml(h.text)}</td></tr>`).join('')}</table>
       </details>
@@ -721,7 +721,7 @@ function renderDocPreview(){
 }
 
 /* ============================================================
-   VERIFICACIONES DETERMINISTAS
+   VERIFICACIONES DETERMINISTAS (SIN IA)
    ============================================================ */
 function runDeterministicChecks(){
   if(!state.doc){ alert('Primero carga un documento.'); return; }
@@ -766,9 +766,7 @@ function checkCitations(paragraphs){
 function checkHeadingNumbering(headings){
   const issues = [];
   const seen = new Map();
-  headings.forEach(h=>{
-    seen.set(h.ref,(seen.get(h.ref)||0)+1);
-  });
+  headings.forEach(h=>seen.set(h.ref,(seen.get(h.ref)||0)+1));
   seen.forEach((count,ref)=>{
     if(count>1) issues.push({type:'duplicado', ref, detail:`El número "${ref}" aparece ${count} veces.`});
   });
@@ -845,10 +843,7 @@ function renderDeterministicResults(){
   }[d.lengthCheck.status];
 
   el.innerHTML = `
-    <div class="card">
-      <h3>Extensión</h3>
-      <p class="muted">${lengthMsg}</p>
-    </div>
+    <div class="card"><h3>Extensión</h3><p class="muted">${lengthMsg}</p></div>
     <div class="card">
       <h3>Citas sin entrada en Referencias (${d.citations.missing.length} candidatas)</h3>
       ${!d.citations.hasReferencesSection?'<p class="hint">No se detectó una sección "Referencias" — este chequeo no es confiable.</p>':''}
@@ -873,36 +868,54 @@ function renderDeterministicResults(){
 }
 
 /* ============================================================
-   CONFIGURACIÓN DEL MOTOR DE IA — proveedores gratuitos, locales y de pago
+   CONFIGURACIÓN DEL MOTOR DE IA
    ============================================================ */
 const API_DEFAULTS = {
-  gemini:    {endpoint:'https://generativelanguage.googleapis.com/v1beta/openai/chat/completions', model:'gemini-2.5-flash', local:false, keyHint:'Pega tu API key gratuita de aistudio.google.com → "Get API key"'},
-  groq:      {endpoint:'https://api.groq.com/openai/v1/chat/completions',                          model:'llama-3.3-70b-versatile', local:false, keyHint:'Pega tu API key gratuita de console.groq.com → API Keys'},
-  openrouter:{endpoint:'https://openrouter.ai/api/v1/chat/completions',                            model:'meta-llama/llama-3.3-70b-instruct:free', local:false, keyHint:'Pega tu API key gratuita de openrouter.ai → Keys. Usa un modelo que termine en ":free"'},
-  zai:       {endpoint:'https://api.z.ai/api/paas/v4/chat/completions',                            model:'glm-4.6', local:false, keyHint:'Pega tu API key de z.ai (verifica los modelos habilitados en tu plan)'},
-  ollama:    {endpoint:'http://localhost:11434/v1/chat/completions',                               model:'qwen2.5:7b', local:true, keyHint:'No necesaria para Ollama — puedes dejarla vacía'},
-  lmstudio:  {endpoint:'http://localhost:1234/v1/chat/completions',                                model:'', local:true, keyHint:'No necesaria para LM Studio — puedes dejarla vacía. Escribe el id del modelo descargado'},
-  openai:    {endpoint:'https://api.openai.com/v1/chat/completions',                               model:'gpt-4o', local:false, keyHint:'Pega tu API key de OpenAI (de pago)'},
-  anthropic: {endpoint:'https://api.anthropic.com/v1/messages',                                    model:'claude-sonnet-4-6', local:false, keyHint:'Pega tu API key de Anthropic (de pago)'},
+  groq:      {endpoint:'https://api.groq.com/openai/v1/chat/completions', model:'llama-3.3-70b-versatile', local:false, keyHint:'Pega tu API key gratuita de console.groq.com → API Keys'},
+  gemini:    {endpoint:'https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent', model:'gemini-3.5-flash-lite', local:false, keyHint:'Pega tu API key gratuita de aistudio.google.com → Get API key'},
+  openrouter:{endpoint:'https://openrouter.ai/api/v1/chat/completions', model:'openrouter/free', local:false, keyHint:'Pega tu API key gratuita de openrouter.ai → Keys'},
+  zai:       {endpoint:'https://api.z.ai/api/paas/v4/chat/completions', model:'glm-4.6', local:false, keyHint:'Pega tu API key de z.ai'},
+  ollama:    {endpoint:'http://localhost:11434/v1/chat/completions', model:'qwen2.5:7b', local:true, keyHint:'No necesaria para Ollama — déjala vacía'},
+  lmstudio:  {endpoint:'http://localhost:1234/v1/chat/completions', model:'', local:true, keyHint:'No necesaria para LM Studio — escribe el ID del modelo'},
+  openai:    {endpoint:'https://api.openai.com/v1/chat/completions', model:'gpt-4o', local:false, keyHint:'Pega tu API key de OpenAI (de pago)'},
+  anthropic: {endpoint:'https://api.anthropic.com/v1/messages', model:'claude-sonnet-4-6', local:false, keyHint:'Pega tu API key de Anthropic (de pago)'},
   custom:    {endpoint:'', model:'', local:false, keyHint:'Pega tu API key, o déjala vacía si tu proxy local no la exige'}
 };
-const API_CFG_LS_KEY = 'dictamen-doctoral-api-cfg-v1';
+const API_CFG_LS_KEY = 'dictamen-doctoral-api-cfg-v2';
 
 function openApiDialog(reason){
   document.getElementById('api-dialog-reason').textContent = reason||'';
+  document.getElementById('cfg-status').textContent = '';
   document.getElementById('api-config-dialog').showModal();
 }
 function closeApiDialog(){
+  readApiConfigInputs();
+  updateApiBadge();
   document.getElementById('api-config-dialog').close();
 }
 
 function isLocalEndpoint(cfg){
   return /:\/\/(localhost|127\.0\.0\.1)/i.test(cfg.endpoint||'');
 }
-/* Un motor está listo si hay endpoint + modelo, y además hay clave
-   O el endpoint es local (Ollama/LM Studio/proxy propio en localhost). */
 function apiConfigReady(cfg){
   return !!(cfg.endpoint && cfg.model && (cfg.key || API_DEFAULTS[cfg.provider]?.local || isLocalEndpoint(cfg)));
+}
+
+function updateApiBadge(){
+  const badge = document.getElementById('api-status-badge');
+  const cfg = {
+    provider: document.getElementById('cfg-provider').value,
+    endpoint: document.getElementById('cfg-endpoint').value.trim(),
+    model: document.getElementById('cfg-model').value.trim(),
+    key: document.getElementById('cfg-key').value.trim()
+  };
+  if(apiConfigReady(cfg)){
+    badge.className = 'badge ok';
+    badge.textContent = 'Motor listo: '+cfg.provider+' ('+cfg.model+')';
+  } else {
+    badge.className = 'badge warn';
+    badge.textContent = 'Motor sin configurar (haz clic en ⚙ Motor de IA)';
+  }
 }
 
 function applyProviderUI(provider, saved){
@@ -917,15 +930,18 @@ function applyProviderUI(provider, saved){
 function loadApiConfigUI(){
   let saved = null;
   try{ saved = JSON.parse(localStorage.getItem(API_CFG_LS_KEY)||'null'); }catch(e){}
-  const provider = (saved && API_DEFAULTS[saved.provider]) ? saved.provider : 'gemini';
+  const provider = (saved && API_DEFAULTS[saved.provider]) ? saved.provider : 'groq';
   document.getElementById('cfg-provider').value = provider;
   applyProviderUI(provider, saved);
   document.getElementById('cfg-remember').checked = true;
+  updateApiBadge();
 }
 
 function onProviderChange(){
   const provider = document.getElementById('cfg-provider').value;
   applyProviderUI(provider, null);
+  document.getElementById('cfg-status').textContent = '';
+  updateApiBadge();
 }
 
 function readApiConfigInputs(){
@@ -942,27 +958,72 @@ function readApiConfigInputs(){
   return {provider, endpoint, model, key};
 }
 
-async function callLLM(systemPrompt, userText, maxTokens){
+async function fetchWithRetry(url, options, onRetryMsg){
+  const delays = [10000, 20000, 35000];
+  for(let attempt=0; attempt<=delays.length; attempt++){
+    let response;
+    try{
+      response = await fetch(url, options);
+    }catch(netErr){
+      throw new Error('Error de red/CORS ('+netErr.message+'). Si abriste el archivo con file://, usa Groq/OpenRouter o sirve el archivo con "python -m http.server 8080".');
+    }
+    if(response.status===429 && attempt<delays.length){
+      const waitMs = delays[attempt];
+      if(onRetryMsg) onRetryMsg('Límite de peticiones (429): esperando '+Math.round(waitMs/1000)+'s para reintentar…');
+      await new Promise(r=>setTimeout(r, waitMs));
+      continue;
+    }
+    if(!response.ok){
+      const errTxt = await response.text().catch(()=>'');
+      throw new Error('HTTP '+response.status+': '+errTxt.slice(0,220));
+    }
+    return response;
+  }
+}
+
+async function callLLM(systemPrompt, userText, maxTokens, onRetryMsg){
   const cfg = readApiConfigInputs();
+  updateApiBadge();
   if(!cfg.endpoint || !cfg.model){
-    throw new Error('Falta el endpoint o el nombre del modelo del motor de IA (botón "⚙ Motor de IA", arriba).');
+    throw new Error('Falta el endpoint o el modelo del motor de IA (botón "⚙ Motor de IA").');
   }
   if(!cfg.key && !(API_DEFAULTS[cfg.provider]?.local || isLocalEndpoint(cfg))){
-    throw new Error('Falta la API key del motor de IA (botón "⚙ Motor de IA", arriba). Para Ollama/LM Studio o un proxy local puedes dejarla vacía.');
+    throw new Error('Falta la API key (botón "⚙ Motor de IA"). Para Ollama/LM Studio puedes dejarla vacía.');
   }
   const key = cfg.key || 'sk-local';
-  const body = {
-    model: cfg.model,
-    temperature: 0.2,
-    max_tokens: maxTokens||1600,
-    messages:[
-      {role:'system', content:systemPrompt},
-      {role:'user',   content:userText}
-    ]
-  };
 
+  // Google Gemini nativo (:generateContent) evita problemas de CORS de la ruta /openai/
+  if((cfg.provider==='gemini' || cfg.endpoint.includes(':generateContent')) && !cfg.endpoint.includes('/openai/')){
+    let url = cfg.endpoint.includes('{model}')
+      ? cfg.endpoint.replace('{model}', encodeURIComponent(cfg.model))
+      : cfg.endpoint;
+    if(!/[?&]key=/.test(url)){
+      url += (url.includes('?') ? '&' : '?') + 'key=' + encodeURIComponent(key);
+    }
+    const response = await fetchWithRetry(url, {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        system_instruction: { parts: [{ text: systemPrompt }] },
+        contents: [{ role:'user', parts: [{ text: userText }] }],
+        generationConfig: { temperature: 0.2, maxOutputTokens: maxTokens||2200 }
+      })
+    }, onRetryMsg);
+    const data = await response.json();
+    const cand = data.candidates && data.candidates[0];
+    const txt = cand && cand.content && cand.content.parts
+      ? cand.content.parts.map(p=>p.text||'').join('\n')
+      : '';
+    if(!txt){
+      const reason = (cand && cand.finishReason) || (data.error && data.error.message) || 'sin contenido';
+      throw new Error('Gemini no devolvió texto ('+reason+').');
+    }
+    return txt;
+  }
+
+  // Anthropic
   if(cfg.provider==='anthropic'){
-    const response = await fetch(cfg.endpoint, {
+    const response = await fetchWithRetry(cfg.endpoint, {
       method:'POST',
       headers:{
         'Content-Type':'application/json',
@@ -977,26 +1038,27 @@ async function callLLM(systemPrompt, userText, maxTokens){
         system: systemPrompt,
         messages: [{role:'user', content:userText}]
       })
-    });
-    if(!response.ok){
-      throw new Error('HTTP '+response.status+': '+(await response.text()).slice(0,200));
-    }
+    }, onRetryMsg);
     const data = await response.json();
     return (data.content||[]).filter(b=>b.type==='text').map(b=>b.text).join('\n');
   }
 
-  // Proveedores compatibles con el formato OpenAI (Gemini, Groq, OpenRouter,
-  // GLM/Z.ai, OpenAI, Ollama, LM Studio, proxies propios…)
+  // Proveedores compatibles OpenAI (Groq, OpenRouter, Ollama, LM Studio, Z.ai, OpenAI…)
   const headers = {'Content-Type':'application/json','Authorization':'Bearer '+key};
   if(cfg.provider==='openrouter'){
-    // headers opcionales de OpenRouter (atribución de la app); no son obligatorios
     headers['HTTP-Referer'] = 'https://localhost/dictamen-doctoral';
     headers['X-Title'] = 'Dictamen doctoral';
   }
-  const response = await fetch(cfg.endpoint, {method:'POST', headers, body: JSON.stringify(body)});
-  if(!response.ok){
-    throw new Error('HTTP '+response.status+': '+(await response.text()).slice(0,200));
-  }
+  const body = {
+    model: cfg.model,
+    temperature: 0.2,
+    max_tokens: maxTokens||1600,
+    messages:[
+      {role:'system', content:systemPrompt},
+      {role:'user',   content:userText}
+    ]
+  };
+  const response = await fetchWithRetry(cfg.endpoint, {method:'POST', headers, body: JSON.stringify(body)}, onRetryMsg);
   const data = await response.json();
   const content = data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content;
   if(!content){ throw new Error('Respuesta sin contenido (estructura inesperada del endpoint).'); }
@@ -1007,7 +1069,7 @@ async function testApiConnection(){
   const status = document.getElementById('cfg-status');
   status.textContent = 'Probando conexión…';
   try{
-    const r = await callLLM('Responde únicamente con la palabra OK.', 'Di OK.', 20);
+    const r = await callLLM('Responde únicamente con la palabra OK.', 'Di OK.', 20, msg=>{ status.textContent=msg; });
     status.textContent = 'Conexión correcta — respuesta: '+String(r).trim().slice(0,40);
   }catch(err){
     status.textContent = 'Error: '+err.message;
@@ -1019,7 +1081,7 @@ async function testApiConnection(){
    ============================================================ */
 function renderAiModeNote(){
   const el = document.getElementById('ai-mode-note');
-  let msg = 'La evaluación con IA procesa el documento por fragmentos (≈9000 caracteres), evalúa cada uno contra la rúbrica y luego sintetiza el dictamen final con líneas de referencia ¶N · p.X. Requiere el motor de IA (botón "⚙ Motor de IA", arriba); sin IA, los pasos 1–3 (rúbrica, extracción y verificaciones deterministas) funcionan igual.';
+  let msg = 'La evaluación con IA procesa el documento por fragmentos (≈9000 caracteres), evalúa cada uno contra la rúbrica y luego sintetiza el dictamen final con referencias ¶N · p.X.';
   if(state.doc){
     const n = chunkDocument(state.doc).length;
     msg += ' Este documento se dividirá en '+n+' fragmento(s).';
@@ -1028,8 +1090,23 @@ function renderAiModeNote(){
 }
 
 function parseJsonLoose(text){
-  const cleaned = text.trim().replace(/^```json/i,'').replace(/^```/,'').replace(/```$/,'').trim();
-  return JSON.parse(cleaned);
+  let cleaned = String(text||'')
+    .replace(/<think>[\s\S]*?<\/think>/gi,'')
+    .trim()
+    .replace(/^```json\s*/i,'')
+    .replace(/^```\s*/,'')
+    .replace(/```\s*$/,'')
+    .trim();
+  try{
+    return JSON.parse(cleaned);
+  }catch(e){
+    const first = cleaned.indexOf('{');
+    const last = cleaned.lastIndexOf('}');
+    if(first!==-1 && last>first){
+      return JSON.parse(cleaned.slice(first, last+1));
+    }
+    throw e;
+  }
 }
 
 function chunkDocument(doc){
@@ -1098,7 +1175,6 @@ function buildChunkUserMessage(chunk){
   return `RÚBRICA:\n${rubricSummary}\n\nNOTAS DE VERIFICACIÓN PREVIA PARA ESTE FRAGMENTO:\n${relevantDeterministicNotes(chunk)}\n\nFRAGMENTO (§${chunk.ref} — ${chunk.title||''}):\n${chunk.text}`;
 }
 
-/* Línea de referencia ¶N · p.X para anclar cada observación en el documento */
 function paragraphAnchor(p){
   return '¶'+p.id + (p.estPage!=null ? ' · p.'+p.estPage : '');
 }
@@ -1114,8 +1190,8 @@ function matchExcerptToParagraph(o){
   }
 }
 
-async function evaluateChunk(chunk){
-  const raw = await callLLM(SYSTEM_PROMPT_CHUNK, buildChunkUserMessage(chunk), 2200);
+async function evaluateChunk(chunk, onRetryMsg){
+  const raw = await callLLM(SYSTEM_PROMPT_CHUNK, buildChunkUserMessage(chunk), 2200, onRetryMsg);
   const parsed = parseJsonLoose(raw);
   const obs = (parsed.observaciones||[]).map(o=>({
     chunkRef: chunk.ref,
@@ -1130,20 +1206,24 @@ async function evaluateChunk(chunk){
 
 async function runOneChunk(i){
   const dot = document.getElementById('chunk-dot-'+i);
+  const msgEl = document.getElementById('chunk-msg-'+i);
   const retryBtn = document.getElementById('chunk-retry-'+i);
   dot.className='status-dot busy';
+  msgEl.textContent='evaluando…';
   retryBtn.style.display='none';
   try{
-    const {summary, observations} = await evaluateChunk(state.chunks[i]);
+    const {summary, observations} = await evaluateChunk(state.chunks[i], m=>{ msgEl.textContent=m; });
     observations.forEach(o=>matchExcerptToParagraph(o));
     state.observations = state.observations.filter(o=>o.chunkRef!==state.chunks[i].ref);
     state.observations.push(...observations);
     state.chunkSummaries[i] = '§'+state.chunks[i].ref+': '+summary;
     dot.className='status-dot ok';
+    msgEl.textContent=observations.length+' obs.';
     renderDictamen();
   }catch(err){
     console.error(err);
     dot.className='status-dot err';
+    msgEl.textContent='Error: '+err.message;
     retryBtn.style.display='inline-block';
   }
 }
@@ -1154,9 +1234,11 @@ async function runAIEvaluation(){
   if(!state.rubric.criteria.length){ alert('Primero define o carga una rúbrica.'); return; }
   const cfg = readApiConfigInputs();
   if(!apiConfigReady(cfg)){
-    openApiDialog('Para generar el dictamen se necesita el motor de IA. Configúralo aquí (y prueba la conexión) y vuelve a pulsar "Generar dictamen con IA".');
+    openApiDialog('Para generar el dictamen necesitas configurar una API gratuita (Groq, Google AI Studio u OpenRouter) o un motor local (Ollama).');
     return;
   }
+  const btn = document.getElementById('btn-run-ai');
+  btn.disabled = true;
   state.chunks = chunkDocument(state.doc);
   state.observations = [];
   state.chunkSummaries = new Array(state.chunks.length).fill('');
@@ -1165,14 +1247,23 @@ async function runAIEvaluation(){
     <div class="progress-row">
       <span class="status-dot" id="chunk-dot-${i}"></span>
       <span>§${escapeHtml(c.ref)} ${escapeHtml(c.title||'')}</span>
+      <span class="hint" id="chunk-msg-${i}" style="margin:0 0 0 6px;"></span>
       <button class="small" style="margin-left:auto;display:none" id="chunk-retry-${i}" onclick="retryChunk(${i})">Reintentar</button>
     </div>`).join('')
     + '<div class="toolbar"><button class="primary" onclick="runSynthesis()">Generar síntesis y dictamen final</button></div>';
 
-  for(let i=0;i<state.chunks.length;i++){
-    await runOneChunk(i);
+  const isLocal = API_DEFAULTS[cfg.provider]?.local || isLocalEndpoint(cfg);
+  try{
+    for(let i=0;i<state.chunks.length;i++){
+      await runOneChunk(i);
+      if(!isLocal && i < state.chunks.length - 1){
+        await new Promise(r=>setTimeout(r, 2500)); // Pausa breve para respetar límites gratuitos por minuto
+      }
+    }
+    await runSynthesis();
+  }finally{
+    btn.disabled = false;
   }
-  await runSynthesis();
 }
 
 const SYSTEM_PROMPT_SYNTHESIS = `Eres el director doctoral que firma el dictamen final. A partir de los resúmenes por sección, la rúbrica y el conteo de hallazgos deterministas, redacta un dictamen breve y directo, sin diplomacia innecesaria, priorizando lo más importante a corregir.
@@ -1243,7 +1334,7 @@ function renderDictamen(){
 
     html += `<div class="card">
       <h3>Documento anotado</h3>
-      <p class="hint">Cada párrafo lleva una línea de referencia ¶N · p.X. Las citas resaltadas son coincidencias de texto entre la observación y el documento; algunas observaciones no logran anclarse automáticamente y solo aparecen en la lista de arriba.</p>
+      <p class="hint">Cada párrafo lleva una línea de referencia ¶N · p.X. Las citas resaltadas son coincidencias de texto entre la observación y el documento.</p>
       ${renderAnnotatedDocument()}
     </div>`;
   }
@@ -1256,7 +1347,7 @@ function renderObservationList(){
     .sort((a,b)=> (a.seccion>b.seccion?1:-1) || (SEV_ORDER[a.severidad]-SEV_ORDER[b.severidad]));
   if(!sorted.length) return '<p class="muted">Sin observaciones para los filtros activos.</p>';
   return sorted.map(o=>`
-    <div class="obs-card ${o.severidade==='x'?'':o.severidad}">
+    <div class="obs-card ${o.severidad}">
       <span class="sev-tag">${SEV_LABEL[o.severidad]}</span> <span class="ref">${escapeHtml(o.seccion)}</span>${o.anchor?` <span class="anchor">${escapeHtml(o.anchor)}</span>`:''}
       ${o.cita?`<blockquote>"${escapeHtml(o.cita)}"</blockquote>`:''}
       <p>${escapeHtml(o.comentario)}</p>
@@ -1322,7 +1413,7 @@ function exportDictamenJSON(){
    INICIALIZACIÓN
    ============================================================ */
 loadApiConfigUI();
-renderRubric(); // arranca vacío; el usuario importa, carga el ejemplo o añade criterios
+renderRubric();
 </script>
 </body>
 </html>
