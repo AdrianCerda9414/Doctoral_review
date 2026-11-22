@@ -291,6 +291,8 @@ details.para-toggle summary{cursor:pointer;color:var(--ink-muted);}
           <button onclick="printDictamen()">🖨 Imprimir / PDF</button>
           <button onclick="exportTableCSV()">📥 Exportar tabla (CSV/Excel)</button>
           <button onclick="exportDictamenJSON()">Exportar JSON</button>
+          <button class="primary" onclick="downloadCommentedDocx()" id="btn-download-docx" disabled>📝 Descargar Word con comentarios</button>
+          <button onclick="printCommentedDocument()" id="btn-print-docx" disabled>🖨 PDF del documento con comentarios</button>
         </div>
       </div>
 
@@ -411,6 +413,7 @@ details.para-toggle summary{cursor:pointer;color:var(--ink-muted);}
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.4.2/mammoth.browser.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.6.347/pdf.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <script>
 if (window['pdfjs-dist/build/pdf']) { window.pdfjsLib = window['pdfjs-dist/build/pdf']; }
 if (window.pdfjsLib) { pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.6.347/pdf.worker.min.js'; }
@@ -422,6 +425,7 @@ if (window.pdfjsLib) { pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.c
 const state = {
   rubric: { title:'', instructedPages:{min:null,max:null}, criteria:[] },
   doc: null,
+  docxArrayBuffer: null,
   docNorm: '',
   studentName: '',
   scope: { mode:'all', fromIdx:0, toIdx:0, selectedHeadingIdxs:new Set(), includePrelim:false },
@@ -759,10 +763,14 @@ async function handleFileUpload(file){
   statusEl.textContent = 'Procesando '+file.name+'…';
   document.getElementById('doc-preview').innerHTML = '';
   document.getElementById('btn-to-step3').disabled = true;
+  state.docxArrayBuffer = null;
   try{
     let parsed;
     const name = file.name.toLowerCase();
-    if(name.endsWith('.docx')) parsed = await parseDocx(file);
+    if(name.endsWith('.docx')){
+      state.docxArrayBuffer = await file.arrayBuffer();
+      parsed = await parseDocx(file);
+    }
     else if(name.endsWith('.pdf')) parsed = await parsePdf(file);
     else { statusEl.textContent = 'Formato no soportado. Usa .docx o .pdf.'; return; }
 
@@ -1998,6 +2006,7 @@ function renderAnnotatedDocument(){
 
 function renderDictamen(){
   const box = document.getElementById('dictamen-output');
+  updateDownloadButtons();
   if(!state.synthesis && !state.observations.length){
     box.innerHTML = '<p class="muted">Aún no se ha generado una evaluación. Configura el alcance y pulsa "Generar dictamen con IA".</p>';
     return;
@@ -2079,6 +2088,459 @@ function exportDictamenJSON(){
   a.href = URL.createObjectURL(new Blob([JSON.stringify(data,null,2)], {type:'application/json'}));
   a.download = buildRevisionBaseName() + '.json';
   a.click();
+}
+
+/* ============================================================
+   GENERACIÓN DE WORD CON COMENTARIOS AL MARGEN (.docx editable)
+   Utiliza JSZip para manipular el XML del .docx original e insertar
+   commentRangeStart/End/Reference + comments.xml.
+   Ancla cada comentario al párrafo completo localizado por la IA
+   (usa o.cita como frase exacta y o.matchedParagraphId como refuerzo).
+   ============================================================ */
+const W_NS = 'http://schemas.openxmlformats.org/wordprocessingml/2006/main';
+const R_NS = 'http://schemas.openxmlformats.org/officeDocument/2006/relationships';
+
+function wCreate(doc, name){
+  return doc.createElementNS(W_NS, 'w:' + name);
+}
+
+/* Recoge todos los runs (w:r) del párrafo en orden del documento,
+   incluyendo los anidados dentro de w:hyperlink. */
+function collectRunsOoxml(p){
+  const runs = [];
+  let cumulative = '';
+  const all = p.getElementsByTagNameNS(W_NS, 'r');
+  for(let i = 0; i < all.length; i++){
+    const r = all[i];
+    if(r.getElementsByTagNameNS(W_NS, 'commentReference').length > 0) continue;
+    let runText = '';
+    const ts = r.getElementsByTagNameNS(W_NS, 't');
+    for(let j = 0; j < ts.length; j++) runText += ts[j].textContent || '';
+    if(!runText) continue;
+    runs.push({
+      elem: r, parent: r.parentNode,
+      start: cumulative.length, end: cumulative.length + runText.length,
+      text: runText
+    });
+    cumulative += runText;
+  }
+  return { runs, cumulative };
+}
+
+/* Normalización para búsqueda (colapsa espacios, minúsculas, quita tildes) */
+function normForOoxml(s){
+  return String(s||'').toLowerCase().normalize('NFD')
+    .replace(/[\u0300-\u036f]/g,'').replace(/\s+/g,' ').trim();
+}
+
+/* Mapea posiciones del texto normalizado al texto original */
+function findAnchorOoxml(cumulative, anchor){
+  const normC = normForOoxml(cumulative);
+  const normA = normForOoxml(anchor);
+  if(!normA) return null;
+  const idx = normC.indexOf(normA);
+  if(idx === -1) return null;
+
+  const normToOrig = [];
+  let origI = 0, normI = 0, inWs = false;
+  while(origI < cumulative.length && normI < normC.length){
+    const ch = cumulative[origI];
+    if(/\s/.test(ch)){
+      if(!inWs){ normToOrig.push(origI); normI++; inWs = true; }
+      origI++;
+    } else {
+      inWs = false;
+      normToOrig.push(origI);
+      normI++; origI++;
+    }
+  }
+  if(idx >= normToOrig.length) return null;
+  const startOrig = normToOrig[idx];
+  const endNormPos = idx + normA.length - 1;
+  const endOrig = endNormPos < normToOrig.length ? normToOrig[endNormPos] + 1 : cumulative.length;
+  return { start: startOrig, end: endOrig };
+}
+
+/* Divide un run en la posición local indicada. */
+function splitRunOoxml(run, parent, localPos){
+  const ts = run.getElementsByTagNameNS(W_NS, 't');
+  if(!ts.length) return { before: run, after: null };
+  const tEl = ts[0];
+  const text = tEl.textContent || '';
+  if(localPos <= 0) return { before: null, after: run };
+  if(localPos >= text.length) return { before: run, after: null };
+
+  const beforeText = text.slice(0, localPos);
+  const afterText = text.slice(localPos);
+
+  tEl.textContent = beforeText;
+  if(/\s/.test(beforeText[0]) || /\s/.test(beforeText[beforeText.length-1]))
+    tEl.setAttributeNS('http://www.w3.org/XML/1998/namespace', 'space', 'preserve');
+
+  const newRun = run.cloneNode(true);
+  const newTs = newRun.getElementsByTagNameNS(W_NS, 't');
+  if(newTs.length){
+    newTs[0].textContent = afterText;
+    if(/\s/.test(afterText[0]) || /\s/.test(afterText[afterText.length-1]))
+      newTs[0].setAttributeNS('http://www.w3.org/XML/1998/namespace', 'space', 'preserve');
+    for(let k = 1; k < newTs.length; k++) newTs[k].parentNode.removeChild(newTs[k]);
+  }
+
+  parent.insertBefore(newRun, run.nextSibling);
+  return { before: run, after: newRun };
+}
+
+/* Inserta commentRangeStart, commentRangeEnd y commentReference
+   alrededor del rango de texto especificado. */
+function insertCommentMarkersOoxml(p, runs, startOrig, endOrig, commentId, xmlDoc){
+  const covered = runs.filter(r => r.start < endOrig && r.end > startOrig);
+  if(!covered.length) throw new Error('No hay runs en el rango');
+
+  let firstRun = covered[0];
+  let lastRun = covered[covered.length - 1];
+
+  if(startOrig > firstRun.start){
+    const localSplit = startOrig - firstRun.start;
+    const res = splitRunOoxml(firstRun.elem, firstRun.parent, localSplit);
+    if(res.after){ firstRun.elem = res.after; firstRun.start = startOrig; }
+  }
+
+  if(endOrig < lastRun.end){
+    const localSplit = endOrig - lastRun.start;
+    const res = splitRunOoxml(lastRun.elem, lastRun.parent, localSplit);
+    if(res.before){ lastRun.elem = res.before; lastRun.end = endOrig; }
+  }
+
+  const firstParent = firstRun.elem.parentNode;
+  const crs = wCreate(xmlDoc, 'commentRangeStart');
+  crs.setAttributeNS(W_NS, 'id', String(commentId));
+  firstParent.insertBefore(crs, firstRun.elem);
+
+  const lastParent = lastRun.elem.parentNode;
+  const cre = wCreate(xmlDoc, 'commentRangeEnd');
+  cre.setAttributeNS(W_NS, 'id', String(commentId));
+  lastParent.insertBefore(cre, lastRun.elem.nextSibling);
+
+  const refRun = wCreate(xmlDoc, 'r');
+  const rpr = wCreate(xmlDoc, 'rPr');
+  const rstyle = wCreate(xmlDoc, 'rStyle');
+  rstyle.setAttributeNS(W_NS, 'val', 'CommentReference');
+  rpr.appendChild(rstyle);
+  refRun.appendChild(rpr);
+  const cref = wCreate(xmlDoc, 'commentReference');
+  cref.setAttributeNS(W_NS, 'id', String(commentId));
+  refRun.appendChild(cref);
+  lastParent.insertBefore(refRun, cre.nextSibling);
+}
+
+/* Asegura que existe el estilo CommentReference en styles.xml */
+function ensureCommentStyleOoxml(stylesRoot, xmlDoc){
+  const styles = stylesRoot.getElementsByTagNameNS(W_NS, 'style');
+  for(let i = 0; i < styles.length; i++){
+    if(styles[i].getAttributeNS(W_NS, 'styleId') === 'CommentReference') return;
+  }
+  const style = wCreate(xmlDoc, 'style');
+  style.setAttributeNS(W_NS, 'type', 'character');
+  style.setAttributeNS(W_NS, 'styleId', 'CommentReference');
+  const name = wCreate(xmlDoc, 'name');
+  name.setAttributeNS(W_NS, 'val', 'annotation reference');
+  style.appendChild(name);
+  stylesRoot.appendChild(style);
+}
+
+function escXml(s){
+  return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+/* Construye el contenido XML de comments.xml */
+function buildCommentsXmlOoxml(commentsData){
+  let xml = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n';
+  xml += '<w:comments xmlns:w="' + W_NS + '" xmlns:r="' + R_NS + '">';
+  for(const cd of commentsData){
+    xml += '<w:comment w:id="' + cd.id + '" w:author="' + escXml(cd.author) + '" w:initials="' + escXml(cd.initials) + '" w:date="' + escXml(cd.date) + '">';
+    const lines = cd.text.split('\n');
+    for(const line of lines){
+      xml += '<w:p><w:r><w:rPr><w:rStyle w:val="CommentReference"/><w:sz w:val="18"/></w:rPr><w:t xml:space="preserve">' + escXml(line || ' ') + '</w:t></w:r></w:p>';
+    }
+    xml += '</w:comment>';
+  }
+  xml += '</w:comments>';
+  return xml;
+}
+
+/* Genera el blob del .docx con comentarios insertados.
+   Ancla cada comentario al párrafo localizado por la IA. */
+async function generateCommentedDocxBlob(){
+  if(!state.docxArrayBuffer) throw new Error('Esta función solo funciona con archivos .docx originales. Vuelve a cargar el .docx en el paso 2.');
+  if(!state.observations || !state.observations.length) throw new Error('No hay observaciones. Genera primero el dictamen con IA.');
+
+  const JSZipRef = window.JSZip;
+  if(!JSZipRef) throw new Error('JSZip no se cargó. Revisa tu conexión a internet.');
+
+  const buf = state.docxArrayBuffer.slice(0);
+  const zip = await JSZipRef.loadAsync(buf);
+
+  // 1. Leer document.xml
+  const docXmlStr = await zip.file('word/document.xml').async('string');
+  const parser = new DOMParser();
+  const xmlDoc = parser.parseFromString(docXmlStr, 'application/xml');
+
+  let commentId = 0;
+  const commentsData = [];
+  let matched = 0;
+
+  // 2. Para cada observación, buscar la cita e insertar marcadores
+  for(const obs of state.observations){
+    if(!obs.cita || !obs.cita.trim()) continue;
+    commentId++;
+
+    // Texto del comentario: hallazgo + SUGERENCIA + ACCIÓN
+    // (sin severidad, sin sección, sin "HALLAZGO:")
+    const commentText = [
+      obs.comentario || '',
+      '',
+      'SUGERENCIA: ' + (obs.mejora || ''),
+      '',
+      'ACCIÓN: ' + (obs.accion || obs.mejora || '')
+    ].join('\n');
+
+    const anchor = obs.cita.trim();
+    const paragraphs = xmlDoc.getElementsByTagNameNS(W_NS, 'p');
+    let found = false;
+
+    for(let i = 0; i < paragraphs.length; i++){
+      const p = paragraphs[i];
+      const { runs, cumulative } = collectRunsOoxml(p);
+      if(!cumulative) continue;
+      const pos = findAnchorOoxml(cumulative, anchor);
+      if(!pos) continue;
+      try{
+        insertCommentMarkersOoxml(p, runs, pos.start, pos.end, commentId, xmlDoc);
+        found = true;
+        matched++;
+        break;
+      }catch(e){ /* intentar en otro párrafo */ }
+    }
+
+    if(found){
+      commentsData.push({
+        id: commentId,
+        author: 'Dr. J. Adrián Cerda',
+        initials: 'AC',
+        date: new Date().toISOString(),
+        text: commentText
+      });
+    }else{
+      commentId--;
+    }
+  }
+
+  if(matched === 0) throw new Error('No se pudo anclar ningún comentario al texto del documento. Las citas de las observaciones no coinciden con el texto del .docx.');
+
+  // 3. Serializar document.xml modificado
+  const serializer = new XMLSerializer();
+  const newDocXml = serializer.serializeToString(xmlDoc);
+  zip.file('word/document.xml', newDocXml);
+
+  // 4. Crear comments.xml
+  zip.file('word/comments.xml', buildCommentsXmlOoxml(commentsData));
+
+  // 5. Actualizar styles.xml
+  const stylesFile = zip.file('word/styles.xml');
+  if(stylesFile){
+    const stylesStr = await stylesFile.async('string');
+    const stylesDoc = parser.parseFromString(stylesStr, 'application/xml');
+    ensureCommentStyleOoxml(stylesDoc.documentElement, stylesDoc);
+    zip.file('word/styles.xml', new XMLSerializer().serializeToString(stylesDoc));
+  }
+
+  // 6. Actualizar [Content_Types].xml
+  const ctFile = zip.file('[Content_Types].xml');
+  if(ctFile){
+    let ctStr = await ctFile.async('string');
+    if(ctStr.indexOf('/word/comments.xml') === -1){
+      const override = '<Override PartName="/word/comments.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.comments+xml"/>';
+      ctStr = ctStr.replace('</Types>', override + '</Types>');
+      zip.file('[Content_Types].xml', ctStr);
+    }
+  }
+
+  // 7. Actualizar word/_rels/document.xml.rels
+  const relsFile = zip.file('word/_rels/document.xml.rels');
+  if(relsFile){
+    let relsStr = await relsFile.async('string');
+    if(relsStr.indexOf('/comments') === -1){
+      let maxId = 0;
+      const m = relsStr.match(/rId(\d+)/g);
+      if(m) m.forEach(x => { const n = parseInt(x.replace('rId','')); if(n > maxId) maxId = n; });
+      const newRel = '<Relationship Id="rId' + (maxId + 1) + '" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/comments" Target="comments.xml"/>';
+      relsStr = relsStr.replace('</Relationships>', newRel + '</Relationships>');
+      zip.file('word/_rels/document.xml.rels', relsStr);
+    }
+  }
+
+  // 8. Generar blob
+  const blob = await zip.generateAsync({
+    type: 'blob',
+    mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    compression: 'DEFLATE'
+  });
+  return { blob, matched, total: state.observations.length };
+}
+
+/* Descarga el .docx con comentarios */
+async function downloadCommentedDocx(){
+  const btn = document.getElementById('btn-download-docx');
+  if(!btn) return;
+  const originalText = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = 'Generando Word con comentarios…';
+  try{
+    const { blob, matched, total } = await generateCommentedDocxBlob();
+    const a = document.createElement('a');
+    const baseName = buildRevisionBaseName();
+    a.href = URL.createObjectURL(blob);
+    a.download = baseName + '_con_comentarios.docx';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(a.href), 60000);
+    btn.textContent = '✓ Descargado (' + matched + '/' + total + ' comentarios)';
+    setTimeout(() => { btn.textContent = originalText; btn.disabled = false; }, 4000);
+  }catch(err){
+    console.error(err);
+    alert('Error al generar el Word con comentarios: ' + err.message);
+    btn.textContent = originalText;
+    btn.disabled = false;
+  }
+}
+
+/* ============================================================
+   PDF DEL DOCUMENTO CON COMENTARIOS EN EL MARGEN
+   Genera una vista HTML imprimible del documento con los
+   comentarios mostrados como globos en el margen derecho.
+   Usa el párrafo completo localizado por la IA (paragraphText)
+   y resalta la frase exacta (cita) dentro de cada párrafo.
+   ============================================================ */
+function printCommentedDocument(){
+  if(!state.doc){ alert('Primero carga un documento.'); return; }
+  if(!state.observations || !state.observations.length){ alert('No hay observaciones. Genera primero el dictamen con IA.'); return; }
+
+  const scopedParas = getScopedParagraphs(state.scope);
+  const byParagraph = {};
+  state.observations.forEach(o => {
+    if(o.matchedParagraphId != null){
+      (byParagraph[o.matchedParagraphId] = byParagraph[o.matchedParagraphId] || []).push(o);
+    }
+  });
+
+  let bodyHtml = '';
+  scopedParas.forEach(p => {
+    if(!p.text) return;
+    const obsHere = byParagraph[p.id];
+    if(p.isHeading){
+      bodyHtml += '<p class="heading">' + escForPrint(p.sectionRef ? '§' + p.sectionRef + ' ' : '') + escForPrint(p.text) + '</p>';
+      return;
+    }
+    let paraHtml = '<div class="para-block">';
+    // Resaltar la cita dentro del párrafo si hay observaciones
+    if(obsHere && obsHere.length){
+      let text = escForPrint(p.text);
+      obsHere.forEach(o => {
+        if(o.cita){
+          const needle = escForPrint(o.cita.trim());
+          if(needle){
+            const re = new RegExp(needle.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'),'i');
+            if(re.test(text)) text = text.replace(re, m => '<span class="hl-'+o.severidad+'">'+m+'</span>');
+          }
+        }
+      });
+      paraHtml += '<div class="para-text">' + text;
+      paraHtml += ' <span class="anchor">[' + paragraphAnchor(p) + ']</span>';
+      paraHtml += '</div>';
+      paraHtml += '<div class="comments-margin">';
+      obsHere.forEach(o => {
+        paraHtml += '<div class="comment-balloon ' + o.severidad + '">';
+        paraHtml += '<div class="comment-body">' + escForPrint(o.comentario || '') + '</div>';
+        if(o.mejora) paraHtml += '<div class="comment-field"><b>SUGERENCIA:</b> ' + escForPrint(o.mejora) + '</div>';
+        if(o.accion) paraHtml += '<div class="comment-field"><b>ACCIÓN:</b> ' + escForPrint(o.accion) + '</div>';
+        if(o.cita) paraHtml += '<div class="comment-cita">«' + escForPrint(o.cita) + '»</div>';
+        paraHtml += '</div>';
+      });
+      paraHtml += '</div>';
+    } else {
+      paraHtml += '<div class="para-text">' + escForPrint(p.text);
+      paraHtml += ' <span class="anchor">[' + paragraphAnchor(p) + ']</span>';
+      paraHtml += '</div>';
+    }
+    paraHtml += '</div>';
+    bodyHtml += paraHtml;
+  });
+
+  const studentLabel = state.studentName ? ' · Alumno: ' + escForPrint(state.studentName) : '';
+  const docLabel = state.doc ? ' · ' + escForPrint(state.doc.name) : '';
+  const scopeLabel = escForPrint(formatScopeLabel(state.scope));
+
+  const html = `<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Documento con comentarios — ${escForPrint(state.doc ? state.doc.name : '')}</title>
+<style>
+@page { size: A4; margin: 18mm 12mm 18mm 18mm; }
+* { box-sizing: border-box; }
+body { font-family: 'Times New Roman', Georgia, serif; font-size: 11pt; line-height: 1.5; color: #1a1a1a; margin: 0; }
+.header { border-bottom: 2px solid #6E2C2C; padding-bottom: 8px; margin-bottom: 18px; }
+.header h1 { font-size: 14pt; margin: 0 0 4px; color: #6E2C2C; }
+.header .meta { font-size: 9pt; color: #555; }
+.heading { font-weight: bold; font-size: 12pt; margin: 18px 0 6px; color: #333; border-bottom: 1px solid #ccc; padding-bottom: 3px; }
+.para-block { display: flex; gap: 10px; margin: 6px 0; break-inside: avoid; }
+.para-text { flex: 1; text-align: justify; text-indent: 1.5em; }
+.para-text:first-child { text-indent: 0; }
+.anchor { font-size: 8pt; color: #999; font-family: monospace; }
+.comments-margin { flex: 0 0 38%; max-width: 38%; }
+.comment-balloon { border-left: 3px solid #ccc; background: #f9f9f6; padding: 5px 8px; margin-bottom: 6px; font-size: 9pt; line-height: 1.35; border-radius: 0 3px 3px 0; break-inside: avoid; }
+.comment-balloon.critica { border-color: #B3261E; background: #FBEAEA; }
+.comment-balloon.importante { border-color: #8A5A0B; background: #FBF1DE; }
+.comment-balloon.sugerencia { border-color: #2B5F8A; background: #E9F1F7; }
+.comment-body { margin-bottom: 3px; }
+.comment-field { font-size: 8.5pt; margin-top: 2px; }
+.comment-cita { font-style: italic; font-size: 8.5pt; color: #666; margin-top: 4px; border-left: 2px solid #ccc; padding-left: 5px; }
+.hl-critica { background: #F3C7C3; padding: 0 1px; border-radius: 2px; }
+.hl-importante { background: #F2DDAF; padding: 0 1px; border-radius: 2px; }
+.hl-sugerencia { background: #C9DDEE; padding: 0 1px; border-radius: 2px; }
+@media print { body { font-size: 10pt; } .para-block { gap: 8px; } }
+</style>
+</head>
+<body>
+<div class="header">
+  <h1>Documento con comentarios al margen</h1>
+  <div class="meta">Dictamen de revisión doctoral por Dr. J. Adrián Cerda${studentLabel}${docLabel} · Alcance: ${scopeLabel}</div>
+</div>
+${bodyHtml}
+</body>
+</html>`;
+
+  const w = window.open('', '_blank');
+  if(!w){ alert('El navegador bloqueó la ventana emergente. Permite ventanas emergentes para esta página e intenta de nuevo.'); return; }
+  w.document.open();
+  w.document.write(html);
+  w.document.close();
+  w.onload = function(){ setTimeout(() => { w.focus(); w.print(); }, 300); };
+}
+
+function escForPrint(s){
+  return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+/* Habilita/deshabilita los botones según el estado. */
+function updateDownloadButtons(){
+  const hasDocx = !!state.docxArrayBuffer;
+  const hasObs = state.observations && state.observations.length > 0;
+  const docxBtn = document.getElementById('btn-download-docx');
+  const pdfBtn = document.getElementById('btn-print-docx');
+  if(docxBtn) docxBtn.disabled = !(hasDocx && hasObs);
+  if(pdfBtn) pdfBtn.disabled = !hasObs;
 }
 
 /* ============================================================
