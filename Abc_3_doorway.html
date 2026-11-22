@@ -2379,7 +2379,18 @@ async function generateCommentedDocxBlob(){
     }
   }
 
-  // 8. Generar blob
+  // 8. Eliminar entradas de directorio auto-creadas por JSZip.
+  // Word abre en modo protegido los .docx que contienen entradas de
+  // directorio (carpetas vacías) en el ZIP, volviéndolos no editables.
+  // Usamos delete directo en vez de zip.remove() porque este último
+  // borra recursivamente los archivos dentro del directorio.
+  Object.keys(zip.files).forEach(function(path){
+    if(zip.files[path] && zip.files[path].dir){
+      delete zip.files[path];
+    }
+  });
+
+  // 9. Generar blob
   const blob = await zip.generateAsync({
     type: 'blob',
     mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
